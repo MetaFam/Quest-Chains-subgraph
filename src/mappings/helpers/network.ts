@@ -18,5 +18,7 @@ export function getNetwork(): string {
   else if (network == 'optimism-kovan') return '0x45';
   else if (network == 'aurora') return '0x4e454152';
   else if (network == 'aurora-testnet') return '0x4e454153';
+  else if (network == 'sepolia') return '0xaa36a7';
+  else if (network == 'holesky') return '0x4268';
   else return 'unknown';
 }
