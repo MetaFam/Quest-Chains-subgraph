@@ -3,12 +3,12 @@
   "version": "0.1.0",
   "license": "GPL-3.0",
   "devDependencies": {
-    "@graphprotocol/graph-cli": "0.60.0",
-    "@graphprotocol/graph-ts": "0.31.0",
-    "husky": "^8.0.1",
-    "lint-staged": "^13.0.3",
+    "@graphprotocol/graph-cli": "0.71.1",
+    "@graphprotocol/graph-ts": "0.35.1",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.2",
     "mustache": "^4.2.0",
-    "prettier": "^2.7.1"
+    "prettier": "^3.2.5"
   },
   "scripts": {
     "auth": "graph auth",
@@ -34,7 +34,10 @@
     "prepare-sepolia": "mustache src/config/sepolia.json subgraph.template.yaml > subgraph.yaml",
     "deploy-only-sepolia": "graph deploy --product subgraph-studio quest-chains-sepolia",
     "deploy-sepolia": "yarn prepare-sepolia && yarn codegen && yarn build && yarn deploy-only-sepolia",
-    "prepare": "husky install"
+    "prepare-holesky": "mustache src/config/holesky.json subgraph.template.yaml > subgraph.yaml",
+    "deploy-only-holesky": "graph deploy --product subgraph-studio quest-chains-holesky",
+    "deploy-holesky": "yarn prepare-holesky && yarn codegen && yarn build && yarn deploy-only-holesky",
+    "prepare": "husky"
   },
   "lint-staged": {
     "*.{json,yml,yaml,md,ts}": [

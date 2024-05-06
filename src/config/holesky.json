@@ -1,0 +1,10 @@
+{
+  "network": "holesky",
+  "v2": [
+    {
+      "version": "",
+      "factory": "0x415E67D2e2710b246B99492ceC89cC90Af81931a",
+      "blockNumber": "1487745"
+    }
+  ]
+}
