@@ -1,4 +1,4 @@
-import { log } from '@graphprotocol/graph-ts';
+import { log, Address } from '@graphprotocol/graph-ts';
 
 import {
   QuestChainCreated as QuestChainCreatedEvent,
@@ -14,12 +14,25 @@ import {
   QuestChainTokenV2 as QuestChainTokenTemplate,
 } from '../../types/templates';
 
-import { getUser, getGlobal, getQuestChain, getERC20Token } from '../helpers';
+import {
+  getUser,
+  getGlobal,
+  getQuestChain,
+  getERC20Token,
+  ADDRESS_ZERO,
+} from '../helpers';
+
+import { Global } from '../../types/schema';
 
 export function handleFactorySetup(event: FactorySetupEvent): void {
   let globalNode = getGlobal();
-  globalNode.factoryAddress = event.address;
-  let contract = QuestChainFactory.bind(event.address);
+  setupGlobalNode(globalNode, event.address);
+}
+
+function setupGlobalNode(globalNode: Global, factoryAddress: Address): void {
+  globalNode.factoryAddress = factoryAddress;
+
+  let contract = QuestChainFactory.bind(factoryAddress);
   globalNode.templateAddress = contract.questChainTemplate();
   let tokenAddress = contract.questChainToken();
   globalNode.tokenAddress = tokenAddress;
@@ -78,6 +91,11 @@ export function handleQuestChainCreated(event: QuestChainCreatedEvent): void {
   QuestChainTemplate.create(event.params.questChain);
 
   let globalNode = getGlobal();
+
+  if (globalNode.factoryAddress == ADDRESS_ZERO) {
+    setupGlobalNode(globalNode, event.address);
+  }
+
   globalNode.questChainCount = globalNode.questChainCount + 1;
   globalNode.save();
 
