@@ -15,15 +15,15 @@ export function createSearchString(
   if (name == null && description == null) return null;
 
   if (description == null) {
-    return (name as String).toLowerCase();
+    return (name as string).toLowerCase();
   }
 
   if (name == null) {
-    return (description as String).toLowerCase();
+    return (description as string).toLowerCase();
   }
 
-  return (name as String)
+  return (name as string)
     .toLowerCase()
     .concat(' ')
-    .concat((description as String).toLowerCase());
+    .concat((description as string).toLowerCase());
 }

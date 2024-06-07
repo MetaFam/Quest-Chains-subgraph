@@ -10,7 +10,7 @@ function questChainCompletedByUser(
 
   let atLeastOnePassed = false;
 
-  for (let questIdx: i32 = 0; questIdx < questCount; questIdx = questIdx + 1) {
+  for (let questIdx of Array.from({ length: questCount }, (_, i) => i)) {
     let questId = chainId
       .concat('-')
       .concat(BigInt.fromI32(questIdx).toHexString());
@@ -37,9 +37,7 @@ export function updateQuestChainCompletions(
 ): QuestChain {
   let completed = new TypedMap<string, boolean>();
 
-  for (let i = 0; i < questChain.questers.length; ++i) {
-    let questerId = questChain.questers[i];
-
+  for (let questerId of questChain.questers) {
     let hasCompleted = questChainCompletedByUser(
       questChain.id,
       questChain.totalQuestCount,
@@ -51,9 +49,9 @@ export function updateQuestChainCompletions(
 
   let completedQuesters = new Array<string>();
 
-  for (let i = 0; i < completed.entries.length; ++i) {
-    if (completed.entries[i].value) {
-      let questerId = completed.entries[i].key;
+  for (let entry of completed.entries) {
+    if (entry.value) {
+      let questerId = entry.key;
       completedQuesters.push(questerId);
     }
   }

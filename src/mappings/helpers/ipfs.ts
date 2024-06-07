@@ -21,59 +21,53 @@ class Metadata {
   }
 }
 
+
+function fetchHash(details: string): string {
+  let parts = details.split('/');
+  return parts.length > 0 ? parts[parts.length - 1] : '';
+}
+
+function fetchIpfsData(hash: string) {
+  let ipfsData = ipfs.cat(hash);
+  if (ipfsData) {
+    log.info('IPFS details from hash {}, data {}', [hash, ipfsData.toString()]);
+    return json.fromBytes(ipfsData).toObject();
+  } else {
+    log.warning('could not get IPFS details from hash {}', [hash]);
+    return null;
+  }
+}
+
+function assignMetadataValue(data: any, key: string): string | null {
+  let value = data.get(key);
+  return value != null && !value.isNull() ? value.toString() : null;
+}
+
+function assignMetadataCategories(data: any): string[] | null {
+  let categories = data.get('categories');
+  if (categories != null && !categories.isNull()) {
+    let categoryArray = categories.toArray();
+    return categoryArray.map(category => category.toString());
+  }
+  return null;
+}
+
 export function fetchMetadata(details: string): Metadata {
   let metadata = new Metadata();
   if (details == '') return metadata;
 
-  let parts = details.split('/');
-  let hash = parts.length > 0 ? parts[parts.length - 1] : '';
+  let hash = fetchHash(details);
   if (hash != '') {
-    let ipfsData = ipfs.cat(hash);
-    if (ipfsData) {
-      log.info('IPFS details from hash {}, data {}', [
-        details,
-        ipfsData.toString(),
-      ]);
-      let data = json.fromBytes(ipfsData).toObject();
-      let name = data.get('name');
-      if (name != null && !name.isNull()) {
-        metadata.name = name.toString();
-      }
-      let description = data.get('description');
-      if (description != null && !description.isNull()) {
-        metadata.description = description.toString();
-      }
-      let imageUrl = data.get('image_url');
-      if (imageUrl != null && !imageUrl.isNull()) {
-        metadata.imageUrl = imageUrl.toString();
-      }
-      let animationUrl = data.get('animation_url');
-      if (animationUrl != null && !animationUrl.isNull()) {
-        metadata.animationUrl = animationUrl.toString();
-      }
-      let externalUrl = data.get('external_url');
-      if (externalUrl != null && !externalUrl.isNull()) {
-        metadata.externalUrl = externalUrl.toString();
-      }
-      let mimeType = data.get('mime_type');
-      if (mimeType != null && !mimeType.isNull()) {
-        metadata.mimeType = mimeType.toString();
-      }
-      let slug = data.get('slug');
-      if (slug != null && !slug.isNull()) {
-        metadata.slug = slug.toString();
-      }
-      let categories = data.get('categories');
-      if (categories != null && !categories.isNull()) {
-        let categoryList = new Array<string>();
-        let categoryArray = categories.toArray();
-        for (let i = 0; i < categoryArray.length; ++i) {
-          categoryList.push(categoryArray.at(i).toString());
-        }
-        metadata.categories = categoryList;
-      }
-    } else {
-      log.warning('could not get IPFS details from hash {}', [hash]);
+    let data = fetchIpfsData(hash);
+    if (data) {
+      metadata.name = assignMetadataValue(data, 'name');
+      metadata.description = assignMetadataValue(data, 'description');
+      metadata.imageUrl = assignMetadataValue(data, 'image_url');
+      metadata.animationUrl = assignMetadataValue(data, 'animation_url');
+      metadata.externalUrl = assignMetadataValue(data, 'external_url');
+      metadata.mimeType = assignMetadataValue(data, 'mime_type');
+      metadata.slug = assignMetadataValue(data, 'slug');
+      metadata.categories = assignMetadataCategories(data);
     }
   }
 
