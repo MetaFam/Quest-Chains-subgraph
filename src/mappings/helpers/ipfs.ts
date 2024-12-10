@@ -13,20 +13,16 @@ export class Metadata {
   static from(detailsURL: string): Metadata {
     const metadata = new Metadata();
     const path = stripProtocol(detailsURL);
-    if (!!path) {
+    if (path != null) {
       const data = fetchIPFSData(path);
-      if (!!data) {
-        [
-          'name',
-          'description',
-          'image_url',
-          'animation_url',
-          'external_url',
-          'mime_type',
-          'slug',
-        ].forEach(key => {
-          metadata[snakeToCamel(key)] = getString(data, key);
-        });
+      if (data != null) {
+        metadata.name = getString(data, 'name');
+        metadata.description = getString(data, 'description');
+        metadata.imageUrl = getString(data, 'image_url');
+        metadata.animationUrl = getString(data, 'animation_url');
+        metadata.externalUrl = getString(data, 'external_url');
+        metadata.mimeType = getString(data, 'mime_type');
+        metadata.slug = getString(data, 'slug');
         metadata.categories = getArray(data, 'categories');
       }
     }
@@ -34,11 +30,11 @@ export class Metadata {
   }
 }
 
-function stripProtocol(details: string): string | null {
-  const match = Array.from(
-    details.match(new RegExp('^(ipfs://)?(.*)$', 'i')) || [],
-  );
-  return match[1] || null;
+function stripProtocol(details: string): string {
+  if (details.toLowerCase().startsWith('ipfs://')) {
+    details = details.slice(7);
+  }
+  return details;
 }
 
 function fetchIPFSData(path: string): TypedMap<string, JSONValue> | null {
@@ -51,16 +47,22 @@ function fetchIPFSData(path: string): TypedMap<string, JSONValue> | null {
   return null;
 }
 
-function getString(data: any, key: string): string | null {
+function getString(
+  data: TypedMap<string, JSONValue>,
+  key: string,
+): string | null {
   const value = data.get(key);
   return value != null && !value.isNull() ? value.toString() : null;
 }
 
-function getArray(data: any, key: string): string[] | null {
+function getArray(
+  data: TypedMap<string, JSONValue>,
+  key: string,
+): string[] | null {
   const value = data.get(key);
   if (value != null && !value.isNull()) {
     const array = value.toArray();
-    return array.map(elem => elem.toString());
+    return array.map<string>((elem: JSONValue) => elem.toString());
   }
   return null;
 }
