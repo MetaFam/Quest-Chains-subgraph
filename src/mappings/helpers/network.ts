@@ -1,4 +1,4 @@
-import { dataSource, TypedMap } from '@graphprotocol/graph-ts';
+import { dataSource } from '@graphprotocol/graph-ts';
 
 export function getNetwork(): string {
   const network = dataSource.network();

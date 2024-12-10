@@ -66,7 +66,3 @@ function getArray(
   }
   return null;
 }
-
-function snakeToCamel(str: string): string {
-  return str.replace(/_([a-z])/gi, (_, char) => char.toUpperCase());
-}
