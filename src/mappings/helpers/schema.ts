@@ -10,7 +10,7 @@ import {
 import { getNetwork } from './network';
 import { ADDRESS_ZERO } from './constants';
 import { createSearchString } from './strings';
-import { fetchMetadata } from './ipfs';
+import { Metadata } from './ipfs';
 
 export function getUser(address: Address): User {
   let user = User.load(address.toHexString());
@@ -101,7 +101,7 @@ export function createQuest(
 ): Quest {
   let quest = getQuest(address, questIndex);
 
-  let metadata = fetchMetadata(details);
+  const metadata = Metadata.from(details);
   quest.details = details;
   quest.name = metadata.name;
   quest.description = metadata.description;

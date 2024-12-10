@@ -24,7 +24,7 @@ import {
 import {
   createQuest,
   createSearchString,
-  fetchMetadata,
+  Metadata,
   getQuest,
   getQuestChain,
   getUser,
@@ -37,7 +37,7 @@ export function handleChainInit(event: QuestChainInitEvent): void {
   let questChain = getQuestChain(event.address);
 
   let details = event.params.details;
-  let metadata = fetchMetadata(details);
+  const metadata = Metadata.from(details);
   questChain.details = details;
   questChain.name = metadata.name;
   questChain.description = metadata.description;
@@ -100,7 +100,7 @@ export function handleChainEdited(event: QuestChainEditedEvent): void {
     questChainEdit.save();
 
     let details = event.params.details;
-    let metadata = fetchMetadata(details);
+    const metadata = Metadata.from(details);
     questChain.details = details;
     questChain.name = metadata.name;
     questChain.description = metadata.description;
@@ -279,7 +279,7 @@ export function handleQuestsEdited(event: QuestsEditedEvent): void {
       questEdit.editor = user.id;
       questEdit.save();
 
-      let metadata = fetchMetadata(details);
+      const metadata = Metadata.from(details);
       quest.details = details;
       quest.name = metadata.name;
       quest.description = metadata.description;
@@ -368,7 +368,7 @@ export function handleQuestProofsSubmitted(
         .concat('-')
         .concat(event.logIndex.toHexString());
       let proof = new ProofSubmission(proofId);
-      let metadata = fetchMetadata(details);
+      const metadata = Metadata.from(details);
       proof.details = details;
       proof.name = metadata.name;
       proof.description = metadata.description;
@@ -485,7 +485,7 @@ export function handleQuestProofsReviewed(
         .concat('-')
         .concat(event.logIndex.toHexString());
       let review = new ReviewSubmission(reviewId);
-      let metadata = fetchMetadata(details);
+      const metadata = Metadata.from(details);
       review.details = details;
       review.name = metadata.name;
       review.description = metadata.description;

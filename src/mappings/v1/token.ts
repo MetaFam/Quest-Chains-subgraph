@@ -5,12 +5,7 @@ import {
   TransferSingle as TransferSingleEvent,
   URI as URIEvent,
 } from '../../types/templates/QuestChainTokenV1/QuestChainTokenV1';
-import {
-  ADDRESS_ZERO,
-  removeFromArray,
-  fetchMetadata,
-  getUser,
-} from '../helpers';
+import { ADDRESS_ZERO, removeFromArray, Metadata, getUser } from '../helpers';
 
 export function handleTransferSingle(event: TransferSingleEvent): void {
   let tokenId = event.address
@@ -52,7 +47,7 @@ export function handleURIUpdated(event: URIEvent): void {
   token.tokenAddress = event.address;
 
   let details = event.params.value;
-  let metadata = fetchMetadata(details);
+  const metadata = Metadata.from(details);
   token.details = details;
   token.name = metadata.name;
   token.description = metadata.description;

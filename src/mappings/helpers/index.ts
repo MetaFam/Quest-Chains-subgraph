@@ -1,5 +1,5 @@
 export * from './constants';
-export * from './ipfs';
+export { Metadata } from './ipfs';
 export * from './network';
 export * from './strings';
 export * from './schema';

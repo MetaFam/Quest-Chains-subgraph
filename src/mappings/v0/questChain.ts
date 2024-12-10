@@ -25,7 +25,7 @@ import {
 } from '../../types/templates/QuestChainV0/QuestChainV0';
 import {
   createSearchString,
-  fetchMetadata,
+  Metadata,
   getUser,
   removeFromArray,
   updateQuestChainCompletions,
@@ -38,7 +38,7 @@ export function handleChainCreated(event: QuestChainCreatedEvent): void {
     log.info('handleChainCreated {}', [event.address.toHexString()]);
 
     let details = event.params.details;
-    let metadata = fetchMetadata(details);
+    const metadata = Metadata.from(details);
     questChain.details = details;
     questChain.name = metadata.name;
     questChain.description = metadata.description;
@@ -83,7 +83,7 @@ export function handleChainEdited(event: QuestChainEditedEvent): void {
     questChainEdit.save();
 
     let details = event.params.details;
-    let metadata = fetchMetadata(details);
+    const metadata = Metadata.from(details);
     questChain.paused = false;
     questChain.details = details;
     questChain.name = metadata.name;
@@ -193,7 +193,7 @@ export function handleQuestCreated(event: QuestCreatedEvent): void {
     quest.questId = event.params.questId;
 
     let details = event.params.details;
-    let metadata = fetchMetadata(details);
+    const metadata = Metadata.from(details);
     quest.optional = false;
     quest.skipReview = false;
     quest.paused = false;
@@ -307,7 +307,7 @@ export function handleQuestEdited(event: QuestEditedEvent): void {
       questEdit.save();
 
       let details = event.params.details;
-      let metadata = fetchMetadata(details);
+      const metadata = Metadata.from(details);
       quest.details = details;
       quest.name = metadata.name;
       quest.description = metadata.description;
@@ -399,7 +399,7 @@ export function handleQuestProofSubmitted(
         .concat(event.logIndex.toHexString());
       let proof = new ProofSubmission(proofId);
       let details = event.params.proof;
-      let metadata = fetchMetadata(details);
+      const metadata = Metadata.from(details);
       proof.details = details;
       proof.name = metadata.name;
       proof.description = metadata.description;
@@ -514,7 +514,7 @@ export function handleQuestProofReviewed(event: QuestProofReviewedEvent): void {
         .concat(event.logIndex.toHexString());
       let review = new ReviewSubmission(reviewId);
       let details = event.params.details;
-      let metadata = fetchMetadata(details);
+      const metadata = Metadata.from(details);
       review.details = details;
       review.name = metadata.name;
       review.description = metadata.description;
