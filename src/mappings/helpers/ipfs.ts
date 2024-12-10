@@ -1,4 +1,4 @@
-import { ipfs, json, log } from '@graphprotocol/graph-ts';
+import { ipfs, json, JSONValue, log, TypedMap } from '@graphprotocol/graph-ts';
 
 export class Metadata {
   name: string | null = null;
@@ -10,7 +10,7 @@ export class Metadata {
   slug: string | null = null;
   categories: string[] | null = null;
 
-  static from(detailsURL: string) {
+  static from(detailsURL: string): Metadata {
     const metadata = new Metadata();
     const path = stripProtocol(detailsURL);
     if (!!path) {
@@ -34,14 +34,14 @@ export class Metadata {
   }
 }
 
-function stripProtocol(details: string) {
-  const [, _protocol, path] = Array.from(
-    details.match(/^(ipfs:\/\/)?(.*)?/i) ?? [],
+function stripProtocol(details: string): string | null {
+  const match = Array.from(
+    details.match(new RegExp('^(ipfs://)?(.*)$', 'i')) || [],
   );
-  return path ?? null;
+  return match[1] || null;
 }
 
-function fetchIPFSData(path: string) {
+function fetchIPFSData(path: string): TypedMap<string, JSONValue> | null {
   const raw = ipfs.cat(path);
   if (raw) {
     log.info(`Details from "${path}": ${raw}`, []);
@@ -56,7 +56,7 @@ function getString(data: any, key: string): string | null {
   return value != null && !value.isNull() ? value.toString() : null;
 }
 
-function getArray(data: any, key: string) {
+function getArray(data: any, key: string): string[] | null {
   const value = data.get(key);
   if (value != null && !value.isNull()) {
     const array = value.toArray();
@@ -65,6 +65,6 @@ function getArray(data: any, key: string) {
   return null;
 }
 
-function snakeToCamel(str: string) {
+function snakeToCamel(str: string): string {
   return str.replace(/_([a-z])/gi, (_, char) => char.toUpperCase());
 }
