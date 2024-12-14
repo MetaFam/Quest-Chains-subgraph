@@ -1,6 +1,6 @@
 {
   "name": "@quest-chains/subgraph",
-  "version": "0.1.0",
+  "version": "0.2.2",
   "license": "GPL-3.0",
   "devDependencies": {
     "@graphprotocol/graph-cli": "^0.91.1",

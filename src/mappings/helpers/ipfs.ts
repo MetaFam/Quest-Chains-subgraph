@@ -40,10 +40,10 @@ function stripProtocol(details: string): string {
 function fetchIPFSData(path: string): TypedMap<string, JSONValue> | null {
   const raw = ipfs.cat(path);
   if (raw) {
-    log.info(`Details from "${path}": ${raw}`, []);
+    log.info('Details from "{}": {}', [path, raw.toString()]);
     return json.fromBytes(raw).toObject();
   }
-  log.warning(`Couldn't get details from "${path}"`, []);
+  log.warning('Couldn’t get details from "{}"', [path]);
   return null;
 }
 
