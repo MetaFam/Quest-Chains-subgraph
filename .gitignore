@@ -26,6 +26,7 @@ yarn-error.log*
 build/
 src/types/
 subgraph.yaml
+subgraph.*.yaml
 
 # vim
 *.sw[a-z]
@@ -35,3 +36,4 @@ subgraph.yaml
 .yarnrc.yml
 .pnp.*
 package-lock.json
+.vscode/

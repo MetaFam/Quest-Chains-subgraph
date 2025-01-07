@@ -37,6 +37,9 @@
     "prepare-holesky": "mustache src/config/holesky.json subgraph.template.yaml > subgraph.yaml",
     "deploy-only-holesky": "graph deploy --product subgraph-studio quest-chains-holesky",
     "deploy-holesky": "yarn prepare-holesky && yarn codegen && yarn build && yarn deploy-only-holesky",
+    "config-op-sepolia": "mustache src/config/op-sepolia.json subgraph.template.yaml > subgraph.op-sepolia.yaml",
+    "deploy-op-sepolia": "graph deploy dacademy-optimism-sepolia subgraph.op-sepolia.yaml",
+    "config-and-deploy-op-sepolia": "yarn config-op-sepolia && yarn codegen subgraph.op-sepolia.yaml && yarn deploy-op-sepolia",
     "prepare": "husky"
   },
   "lint-staged": {
