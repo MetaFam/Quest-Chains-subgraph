@@ -43,10 +43,10 @@ export function getERC20Token(address: Address): ERC20Token {
   if (token == null) {
     token = new ERC20Token(address.toHexString())
 
-    let erc20 = ERC20.bind(address)
-    let nameValue = erc20.try_name()
-    let symbolValue = erc20.try_symbol()
-    let decimalsValue = erc20.try_decimals()
+    const erc20 = ERC20.bind(address)
+    const nameValue = erc20.try_name()
+    const symbolValue = erc20.try_symbol()
+    const decimalsValue = erc20.try_decimals()
 
     token.name = nameValue.reverted ? '' : nameValue.value
     token.symbol = symbolValue.reverted ? '' : symbolValue.value
@@ -58,7 +58,7 @@ export function getERC20Token(address: Address): ERC20Token {
 export function getQuestChain(address: Address): QuestChain {
   let questChain = QuestChain.load(address.toHexString())
   if (questChain == null) {
-    let network = getNetwork()
+    const network = getNetwork()
 
     questChain = new QuestChain(address.toHexString())
 

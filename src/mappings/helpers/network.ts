@@ -20,5 +20,6 @@ export function getNetwork(): string {
   if (network === 'aurora-testnet') return '0x4e454153'
   if (network === 'sepolia') return '0xaa36a7'
   if (network === 'holesky') return '0x4268'
+  if (network === 'localhost') return '0x7a69'
   return 'unknown'
 }
