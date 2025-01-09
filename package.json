@@ -3,6 +3,7 @@
   "version": "0.2.2",
   "license": "GPL-3.0",
   "devDependencies": {
+    "@as-pect/cli": "^8.1.0",
     "@graphprotocol/graph-cli": "^0.91.1",
     "@graphprotocol/graph-ts": "^0.36.0",
     "husky": "^9.0.11",
@@ -13,7 +14,7 @@
   "scripts": {
     "auth": "graph auth",
     "build": "graph build",
-    "clean": "rm -rf src/types build",
+    "clean": "rm -rf src/types/ build/",
     "codegen": "yarn clean && graph codegen --output-dir src/types/",
     "format": "prettier --write \"{*,**/*}.{json,yml,yaml,md,ts}\"",
     "create-local": "graph create --node http://localhost:8020/ test/quest-chains",
@@ -38,13 +39,15 @@
     "deploy-only-holesky": "graph deploy --product subgraph-studio quest-chains-holesky",
     "deploy-holesky": "yarn prepare-holesky && yarn codegen && yarn build && yarn deploy-only-holesky",
     "config-op-sepolia": "mustache src/config/op-sepolia.json subgraph.template.yaml > subgraph.op-sepolia.yaml",
+    "codegen-op-sepolia": "yarn codegen subgraph.op-sepolia.yaml",
     "deploy-op-sepolia": "graph deploy dacademy-optimism-sepolia subgraph.op-sepolia.yaml",
-    "config-and-deploy-op-sepolia": "yarn config-op-sepolia && yarn codegen subgraph.op-sepolia.yaml && yarn deploy-op-sepolia",
+    "op-sepolia-all": "yarn config-op-sepolia && yarn codegen-op-sepolia && yarn deploy-op-sepolia",
     "config-localhost": "mustache src/config/localhost.json subgraph.template.yaml > subgraph.localhost.yaml",
     "create-localhost": "graph create --node http://localhost:8020/ dacademy-localhost",
     "deploy-localhost": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 dacademy-localhost subgraph.localhost.yaml",
     "config-and-deploy-localhost": "yarn config-localhost && yarn codegen subgraph.localhost.yaml && yarn deploy-localhost",
-    "prepare": "husky"
+    "prepare": "husky",
+    "as:lint": "asp --verbose"
   },
   "lint-staged": {
     "*.{json,yml,yaml,md,ts}": [

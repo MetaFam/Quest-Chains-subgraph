@@ -1,15 +1,16 @@
-import { Address, BigInt, ethereum } from '@graphprotocol/graph-ts'
+import { Address, BigInt, Bytes, ethereum } from '@graphprotocol/graph-ts'
 import { ERC20 } from '../../types/QuestChainFactoryV2/ERC20'
 import { User, Global, QuestChain, Quest, ERC20Token } from '../../types/schema'
 import { getNetwork } from './network'
 import { ADDRESS_ZERO } from './constants'
 import { createSearchString } from './strings'
-import { Metadata } from './ipfs'
+import { Metadata, stripProtocol } from './ipfs'
+import { QuestMetadata } from '../../types/templates'
 
 export function getUser(address: Address): User {
-  let user = User.load(address.toHexString())
+  let user = User.load(address)
   if (user == null) {
-    user = new User(address.toHexString())
+    user = new User(address)
     user.questsPassed = new Array<string>()
     user.questsFailed = new Array<string>()
     user.questsInReview = new Array<string>()
@@ -66,18 +67,18 @@ export function getQuestChain(address: Address): QuestChain {
     questChain.chainId = network
 
     questChain.numCompletedQuesters = 0
-    questChain.completedQuesters = new Array<string>()
+    questChain.completedQuesters = new Array<Bytes>()
     questChain.numQuesters = 0
-    questChain.questers = new Array<string>()
+    questChain.questers = new Array<Bytes>()
 
     questChain.questCount = 0
     questChain.totalQuestCount = 0
     questChain.paused = false
 
-    questChain.owners = new Array<string>()
-    questChain.admins = new Array<string>()
-    questChain.editors = new Array<string>()
-    questChain.reviewers = new Array<string>()
+    questChain.owners = new Array<Bytes>()
+    questChain.admins = new Array<Bytes>()
+    questChain.editors = new Array<Bytes>()
+    questChain.reviewers = new Array<Bytes>()
 
     questChain.questsPassed = new Array<string>()
     questChain.questsFailed = new Array<string>()
@@ -95,16 +96,9 @@ export function createQuest(
 ): Quest {
   let quest = getQuest(address, questIndex)
 
-  const metadata = Metadata.from(details)
   quest.details = details
-  quest.name = metadata.name
-  quest.description = metadata.description
-  quest.imageUrl = metadata.imageUrl
-  quest.externalUrl = metadata.externalUrl
+  QuestMetadata.create(stripProtocol(details))
   quest.creationTxHash = event.transaction.hash
-
-  let search = createSearchString(metadata.name, metadata.description)
-  quest.search = search
 
   let user = getUser(creator)
   quest.createdAt = event.block.timestamp
@@ -131,9 +125,9 @@ export function getQuest(address: Address, questIndex: BigInt): Quest {
     quest.paused = false
 
     quest.numCompletedQuesters = 0
-    quest.completedQuesters = new Array<string>()
+    quest.completedQuesters = new Array<Bytes>()
     quest.numQuesters = 0
-    quest.questers = new Array<string>()
+    quest.questers = new Array<Bytes>()
 
     quest.usersPassed = new Array<string>()
     quest.usersFailed = new Array<string>()

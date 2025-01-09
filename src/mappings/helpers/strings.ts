@@ -1,5 +1,5 @@
-export function removeFromArray(arr: string[], item: string): string[] {
-  let newArr = new Array<string>()
+export function removeFromArray<T>(arr: T[], item: T): T[] {
+  let newArr = new Array<T>()
   for (let i = 0; i < arr.length; i = i + 1) {
     if (arr[i] != item) {
       newArr.push(arr[i])

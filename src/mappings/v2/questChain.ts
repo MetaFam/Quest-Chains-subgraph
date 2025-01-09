@@ -7,7 +7,11 @@ import {
   ProofSubmission,
   ReviewSubmission,
 } from '../../types/schema'
-
+import {
+  QuestMetadata,
+  QuestChainMetadata,
+  SubmissionMetadata,
+} from '../../types/templates'
 import {
   QuestChainInit as QuestChainInitEvent,
   QuestChainEdited as QuestChainEditedEvent,
@@ -23,8 +27,6 @@ import {
 } from '../../types/templates/QuestChainV2/QuestChainV2'
 import {
   createQuest,
-  createSearchString,
-  Metadata,
   getQuest,
   getQuestChain,
   getUser,
@@ -32,29 +34,20 @@ import {
   updateQuestChainCompletions,
 } from '../helpers'
 import { getRoles } from './roles'
+import { stripProtocol } from '../helpers/ipfs'
 
 export function handleChainInit(event: QuestChainInitEvent): void {
-  let questChain = getQuestChain(event.address)
+  const chain = getQuestChain(event.address)
 
-  let details = event.params.details
-  const metadata = Metadata.from(details)
-  questChain.details = details
-  questChain.name = metadata.name
-  questChain.description = metadata.description
-  questChain.imageUrl = metadata.imageUrl
-  questChain.externalUrl = metadata.externalUrl
-  questChain.slug = metadata.slug
-  questChain.categories = metadata.categories
+  const details = event.params.details
+  chain.details = details
+  QuestChainMetadata.create(stripProtocol(details))
+  chain.paused = event.params.paused
 
-  let search = createSearchString(metadata.name, metadata.description)
-  questChain.search = search
-
-  questChain.paused = event.params.paused
-
-  let creator = Address.fromString(questChain.createdBy)
-  for (let i = 0; i < event.params.quests.length; ++i) {
-    let details = event.params.quests[i]
-    let quest = createQuest(
+  const creator = Address.fromBytes(chain.createdBy)
+  for (let i = 0; i < event.params.quests.length; i++) {
+    const details = event.params.quests[i]
+    const quest = createQuest(
       event.address,
       BigInt.fromI32(i),
       details,
@@ -65,148 +58,130 @@ export function handleChainInit(event: QuestChainInitEvent): void {
     quest.save()
   }
 
-  questChain.questCount = event.params.quests.length
-  questChain.totalQuestCount = event.params.quests.length
+  chain.questCount = event.params.quests.length
+  chain.totalQuestCount = event.params.quests.length
 
-  questChain.save()
+  chain.save()
 }
 
 export function handleChainEdited(event: QuestChainEditedEvent): void {
-  let questChain = QuestChain.load(event.address.toHexString())
-  if (questChain != null) {
+  const chain = QuestChain.load(event.address.toHexString())
+  if (chain != null) {
     log.info('handleChainEdited {}', [event.address.toHexString()])
 
-    let questChainEditId = event.address
+    const chainEditId = event.address
       .toHexString()
       .concat('-')
       .concat(event.block.timestamp.toHexString())
       .concat('-')
       .concat(event.logIndex.toHexString())
+    const user = getUser(event.params.editor)
 
-    let user = getUser(event.params.editor)
+    const chainEdit = new QuestChainEdit(chainEditId)
+    chainEdit.details = chain.details
+    chainEdit.timestamp = event.block.timestamp
+    chainEdit.txHash = event.transaction.hash
+    chainEdit.questChain = chain.id
+    chainEdit.editor = user.id
+    chainEdit.save()
 
-    let questChainEdit = new QuestChainEdit(questChainEditId)
-    questChainEdit.details = questChain.details
-    questChainEdit.name = questChain.name
-    questChainEdit.description = questChain.description
-    questChainEdit.imageUrl = questChain.imageUrl
-    questChainEdit.externalUrl = questChain.externalUrl
-    questChainEdit.slug = questChain.slug
-    questChainEdit.categories = questChain.categories
-    questChainEdit.timestamp = event.block.timestamp
-    questChainEdit.txHash = event.transaction.hash
-    questChainEdit.questChain = questChain.id
-    questChainEdit.editor = user.id
-    questChainEdit.save()
+    const details = event.params.details
+    chain.details = details
+    QuestChainMetadata.create(stripProtocol(details))
+    chain.editedBy = user.id
+    chain.editedAt = event.block.timestamp
+    chain.updatedAt = event.block.timestamp
 
-    let details = event.params.details
-    const metadata = Metadata.from(details)
-    questChain.details = details
-    questChain.name = metadata.name
-    questChain.description = metadata.description
-    questChain.imageUrl = metadata.imageUrl
-    questChain.externalUrl = metadata.externalUrl
-    questChain.slug = metadata.slug
-    questChain.categories = metadata.categories
-    questChain.editedBy = user.id
-    questChain.editedAt = event.block.timestamp
-    questChain.updatedAt = event.block.timestamp
-
-    let search = createSearchString(metadata.name, metadata.description)
-    questChain.search = search
-
-    questChain.save()
+    chain.save()
   }
 }
 
 export function handleRoleGranted(event: RoleGrantedEvent): void {
-  let questChain = QuestChain.load(event.address.toHexString())
-  if (questChain != null) {
+  const chain = QuestChain.load(event.address.toHexString())
+  if (chain != null) {
     let user = getUser(event.params.account)
     let roles = getRoles(event.address)
     if (event.params.role == roles[0]) {
       // OWNER
-      let newArray = questChain.owners
+      let newArray = chain.owners
       newArray.push(user.id)
-      questChain.owners = newArray
+      chain.owners = newArray
     } else if (event.params.role == roles[1]) {
       // ADMIN
-      let newArray = questChain.admins
+      let newArray = chain.admins
       newArray.push(user.id)
-      questChain.admins = newArray
+      chain.admins = newArray
     } else if (event.params.role == roles[2]) {
       // EDITOR
-      let newArray = questChain.editors
+      let newArray = chain.editors
       newArray.push(user.id)
-      questChain.editors = newArray
+      chain.editors = newArray
     } else if (event.params.role == roles[3]) {
       // REVIEWER
-      let newArray = questChain.reviewers
+      let newArray = chain.reviewers
       newArray.push(user.id)
-      questChain.reviewers = newArray
+      chain.reviewers = newArray
     }
-    user.save()
-    questChain.save()
+    chain.save()
   }
 }
 
 export function handleRoleRevoked(event: RoleRevokedEvent): void {
-  let questChain = QuestChain.load(event.address.toHexString())
-  if (questChain != null) {
+  const chain = QuestChain.load(event.address.toHexString())
+  if (chain != null) {
     let user = getUser(event.params.account)
     let roles = getRoles(event.address)
     if (event.params.role == roles[0]) {
       // OWNER
-      let owners = questChain.owners
+      let owners = chain.owners
       let newArray = removeFromArray(owners, user.id)
-      questChain.owners = newArray
+      chain.owners = newArray
     } else if (event.params.role == roles[1]) {
       // ADMIN
-      let admins = questChain.admins
+      let admins = chain.admins
       let newArray = removeFromArray(admins, user.id)
-      questChain.admins = newArray
+      chain.admins = newArray
     } else if (event.params.role == roles[2]) {
       // EDITOR
-      let editors = questChain.admins
+      let editors = chain.admins
       let newArray = removeFromArray(editors, user.id)
-      questChain.editors = newArray
+      chain.editors = newArray
     } else if (event.params.role == roles[3]) {
       // REVIEWER
-      let reviewers = questChain.admins
+      let reviewers = chain.admins
       let newArray = removeFromArray(reviewers, user.id)
-      questChain.reviewers = newArray
+      chain.reviewers = newArray
     }
-    user.save()
-    questChain.save()
+    chain.save()
   }
 }
 
 export function handlePaused(event: PausedEvent): void {
-  let questChain = QuestChain.load(event.address.toHexString())
-  if (questChain != null) {
-    questChain.paused = true
-    questChain.save()
+  const chain = QuestChain.load(event.address.toHexString())
+  if (chain != null) {
+    chain.paused = true
+    chain.save()
   }
 }
 
 export function handleUnpaused(event: UnpausedEvent): void {
-  let questChain = QuestChain.load(event.address.toHexString())
-  if (questChain != null) {
-    questChain.paused = false
-    questChain.save()
+  const chain = QuestChain.load(event.address.toHexString())
+  if (chain != null) {
+    chain.paused = false
+    chain.save()
   }
 }
 
 export function handleQuestsCreated(event: QuestsCreatedEvent): void {
-  let questChain = QuestChain.load(event.address.toHexString())
-  if (questChain != null) {
-    let totalQuestCount = questChain.totalQuestCount
-    let creator = Address.fromString(questChain.createdBy)
+  let chain = QuestChain.load(event.address.toHexString())
+  if (chain != null) {
+    const totalQuestCount = chain.totalQuestCount
+    const creator = Address.fromBytes(chain.createdBy)
 
-    for (let i = 0; i < event.params.detailsList.length; ++i) {
-      let questIndex = BigInt.fromI32(totalQuestCount + i)
-      let details = event.params.detailsList[i]
-      let quest = createQuest(
+    for (let i = 0; i < event.params.detailsList.length; i++) {
+      const questIndex = BigInt.fromI32(totalQuestCount + i)
+      const details = event.params.detailsList[i]
+      const quest = createQuest(
         event.address,
         questIndex,
         details,
@@ -217,21 +192,19 @@ export function handleQuestsCreated(event: QuestsCreatedEvent): void {
       quest.save()
     }
 
-    let questCount = questChain.questCount
-    questChain.questCount = questCount + event.params.detailsList.length
+    const questCount = chain.questCount
+    chain.questCount = questCount + event.params.detailsList.length
 
-    questChain.totalQuestCount =
-      totalQuestCount + event.params.detailsList.length
-
-    questChain = updateQuestChainCompletions(questChain)
-    questChain.save()
+    chain.totalQuestCount = totalQuestCount + event.params.detailsList.length
+    chain = updateQuestChainCompletions(chain)
+    chain.save()
   }
 }
 
 export function handleConfiguredQuests(event: ConfiguredQuestsEvent): void {
-  let questChain = QuestChain.load(event.address.toHexString())
-  if (questChain != null) {
-    let questCount = questChain.questCount
+  let chain = QuestChain.load(event.address.toHexString())
+  if (chain != null) {
+    let questCount = chain.questCount
 
     for (let i = 0; i < event.params.questIdList.length; ++i) {
       let questIndex = event.params.questIdList[i]
@@ -249,52 +222,41 @@ export function handleConfiguredQuests(event: ConfiguredQuestsEvent): void {
       quest.save()
     }
 
-    questChain.questCount = questCount
-    questChain = updateQuestChainCompletions(questChain)
-    questChain.save()
+    chain.questCount = questCount
+    chain = updateQuestChainCompletions(chain)
+    chain.save()
   }
 }
 
 export function handleQuestsEdited(event: QuestsEditedEvent): void {
-  let questChain = QuestChain.load(event.address.toHexString())
-  if (questChain != null) {
+  let chain = QuestChain.load(event.address.toHexString())
+  if (chain != null) {
     for (let i = 0; i < event.params.questIdList.length; ++i) {
-      let questIndex = event.params.questIdList[i]
-      let details = event.params.detailsList[i]
-      let quest = getQuest(event.address, questIndex)
+      const questIndex = event.params.questIdList[i]
+      const details = event.params.detailsList[i]
+      const quest = getQuest(event.address, questIndex)
 
-      let questEditId = quest.id
+      const questEditId = quest.id
         .concat('-')
         .concat(event.block.timestamp.toHexString())
         .concat('-')
         .concat(event.logIndex.toHexString())
+      const user = getUser(event.params.editor)
 
-      let user = getUser(event.params.editor)
-
-      let questEdit = new QuestEdit(questEditId)
+      const questEdit = new QuestEdit(questEditId)
       questEdit.details = quest.details
-      questEdit.name = quest.name
-      questEdit.description = quest.description
-      questEdit.imageUrl = quest.imageUrl
-      questEdit.externalUrl = quest.externalUrl
       questEdit.timestamp = event.block.timestamp
       questEdit.txHash = event.transaction.hash
       questEdit.quest = quest.id
       questEdit.editor = user.id
       questEdit.save()
 
-      const metadata = Metadata.from(details)
       quest.details = details
-      quest.name = metadata.name
-      quest.description = metadata.description
-      quest.imageUrl = metadata.imageUrl
-      quest.externalUrl = metadata.externalUrl
+
+      QuestMetadata.create(stripProtocol(details))
       quest.editedBy = user.id
       quest.editedAt = event.block.timestamp
       quest.updatedAt = event.block.timestamp
-
-      let search = createSearchString(metadata.name, metadata.description)
-      quest.search = search
 
       quest.editedAt = event.block.timestamp
       quest.editedBy = user.id
@@ -308,79 +270,79 @@ export function handleQuestsEdited(event: QuestsEditedEvent): void {
 export function handleQuestProofsSubmitted(
   event: QuestProofsSubmittedEvent,
 ): void {
-  let questChain = QuestChain.load(event.address.toHexString())
-  if (questChain != null) {
-    let user = getUser(event.params.quester)
-    for (let i = 0; i < event.params.questIdList.length; ++i) {
-      let questIndex = event.params.questIdList[i]
-      let details = event.params.proofList[i]
-      let quest = getQuest(event.address, questIndex)
+  let chain = QuestChain.load(event.address.toHexString())
+  if (chain != null) {
+    const user = getUser(event.params.quester)
+    for (let i = 0; i < event.params.questIdList.length; i++) {
+      const questIndex = event.params.questIdList[i]
+      const details = event.params.proofList[i]
+      const quest = getQuest(event.address, questIndex)
 
-      let questStatusId = quest.id.concat('-').concat(user.id)
-      let questStatus = QuestStatus.load(questStatusId)
-      if (questStatus == null) {
-        questStatus = new QuestStatus(questStatusId)
-        questStatus.questChain = questChain.id
-        questStatus.quest = quest.id
-        questStatus.user = user.id
-        questStatus.submissions = new Array<string>()
+      const statusId = quest.id.concat('-').concat(user.id.toHexString())
+      let status = QuestStatus.load(statusId)
+      if (status == null) {
+        status = new QuestStatus(statusId)
+        status.questChain = chain.id
+        status.quest = quest.id
+        status.user = user.id
+        status.submissions = new Array<string>()
       } else {
-        let questsFailed = questChain.questsFailed
-        let newArray = removeFromArray(questsFailed, questStatusId)
-        questChain.questsFailed = newArray
+        let questsFailed = chain.questsFailed
+        let newArray = removeFromArray(questsFailed, statusId)
+        chain.questsFailed = newArray
 
         questsFailed = user.questsFailed
-        newArray = removeFromArray(questsFailed, questStatusId)
+        newArray = removeFromArray(questsFailed, statusId)
         user.questsFailed = newArray
 
         let usersFailed = quest.usersFailed
-        newArray = removeFromArray(usersFailed, questStatusId)
+        newArray = removeFromArray(usersFailed, statusId)
         quest.usersFailed = newArray
 
         let usersInReview = quest.usersInReview
-        newArray = removeFromArray(usersInReview, questStatusId)
+        newArray = removeFromArray(usersInReview, statusId)
         quest.usersInReview = newArray
 
         let questsInReview = user.questsInReview
-        newArray = removeFromArray(questsInReview, questStatusId)
+        newArray = removeFromArray(questsInReview, statusId)
         user.questsInReview = newArray
 
-        questsInReview = questChain.questsInReview
-        newArray = removeFromArray(questsInReview, questStatusId)
-        questChain.questsInReview = newArray
+        questsInReview = chain.questsInReview
+        newArray = removeFromArray(questsInReview, statusId)
+        chain.questsInReview = newArray
       }
 
       if (quest.skipReview) {
-        let questsPassed = questChain.questsPassed
-        questsPassed.push(questStatusId)
-        questChain.questsPassed = questsPassed
+        let questsPassed = chain.questsPassed
+        questsPassed.push(statusId)
+        chain.questsPassed = questsPassed
 
         questsPassed = user.questsPassed
-        questsPassed.push(questStatusId)
+        questsPassed.push(statusId)
         user.questsPassed = questsPassed
 
         let usersPassed = quest.usersPassed
-        usersPassed.push(questStatusId)
+        usersPassed.push(statusId)
         quest.usersPassed = usersPassed
 
-        questStatus.status = 'pass'
+        status.status = 'pass'
       } else {
         let usersInReview = quest.usersInReview
-        usersInReview.push(questStatus.id)
+        usersInReview.push(status.id)
         quest.usersInReview = usersInReview
 
         let questsInReview = user.questsInReview
-        questsInReview.push(questStatus.id)
+        questsInReview.push(status.id)
         user.questsInReview = questsInReview
 
-        questsInReview = questChain.questsInReview
-        questsInReview.push(questStatus.id)
-        questChain.questsInReview = questsInReview
+        questsInReview = chain.questsInReview
+        questsInReview.push(status.id)
+        chain.questsInReview = questsInReview
 
-        questStatus.status = 'review'
+        status.status = 'review'
       }
 
-      let proofId = questStatus.id
+      let proofId = status.id
         .concat('-')
         .concat('proof')
         .concat('-')
@@ -388,27 +350,19 @@ export function handleQuestProofsSubmitted(
         .concat('-')
         .concat(event.logIndex.toHexString())
       let proof = new ProofSubmission(proofId)
-      const metadata = Metadata.from(details)
       proof.details = details
-      proof.name = metadata.name
-      proof.description = metadata.description
-      proof.imageUrl = metadata.imageUrl
-      proof.externalUrl = metadata.externalUrl
+      SubmissionMetadata.create(stripProtocol(details))
 
       proof.quest = quest.id
-      proof.questChain = questChain.id
-      proof.questStatus = questStatus.id
-
+      proof.questChain = chain.id
+      proof.questStatus = status.id
       proof.timestamp = event.block.timestamp
       proof.txHash = event.transaction.hash
       proof.user = user.id
 
-      let search = createSearchString(metadata.name, metadata.description)
-      proof.search = search
-
-      let submissions = questStatus.submissions
+      let submissions = status.submissions
       submissions.push(proof.id)
-      questStatus.submissions = submissions
+      status.submissions = submissions
 
       let questers = quest.questers
       questers = removeFromArray(questers, user.id) // to remove duplicates
@@ -417,10 +371,10 @@ export function handleQuestProofsSubmitted(
       quest.numQuesters = questers.length
 
       proof.save()
-      questStatus.updatedAt = event.block.timestamp
-      questStatus.save()
+      status.updatedAt = event.block.timestamp
+      status.save()
 
-      if (questStatus.status == 'pass') {
+      if (status.status === 'pass') {
         let completedQuesters = quest.completedQuesters
         completedQuesters = removeFromArray(completedQuesters, user.id) // to remove duplicates
         completedQuesters.push(user.id)
@@ -431,22 +385,22 @@ export function handleQuestProofsSubmitted(
       quest.save()
     }
     user.save()
-    let questers = questChain.questers
+    let questers = chain.questers
     questers = removeFromArray(questers, user.id) // to remove duplicates
     questers.push(user.id)
-    questChain.questers = questers
-    questChain.numQuesters = questers.length
+    chain.questers = questers
+    chain.numQuesters = questers.length
 
-    questChain = updateQuestChainCompletions(questChain)
-    questChain.save()
+    chain = updateQuestChainCompletions(chain)
+    chain.save()
   }
 }
 
 export function handleQuestProofsReviewed(
   event: QuestProofsReviewedEvent,
 ): void {
-  let questChain = QuestChain.load(event.address.toHexString())
-  if (questChain != null) {
+  let chain = QuestChain.load(event.address.toHexString())
+  if (chain != null) {
     let reviewer = getUser(event.params.reviewer)
     for (let i = 0; i < event.params.questIdList.length; ++i) {
       let questIndex = event.params.questIdList[i]
@@ -457,11 +411,11 @@ export function handleQuestProofsReviewed(
       let details = event.params.detailsList[i]
       let user = getUser(quester)
 
-      let questStatusId = quest.id.concat('-').concat(user.id)
+      let questStatusId = quest.id.concat('-').concat(user.id.toHexString())
       let questStatus = QuestStatus.load(questStatusId)
       if (questStatus == null) {
         questStatus = new QuestStatus(questStatusId)
-        questStatus.questChain = questChain.id
+        questStatus.questChain = chain.id
         questStatus.quest = quest.id
         questStatus.user = user.id
       }
@@ -474,16 +428,16 @@ export function handleQuestProofsReviewed(
       newArray = removeFromArray(questsInReview, questStatusId)
       user.questsInReview = newArray
 
-      questsInReview = questChain.questsInReview
+      questsInReview = chain.questsInReview
       newArray = removeFromArray(questsInReview, questStatusId)
-      questChain.questsInReview = newArray
+      chain.questsInReview = newArray
 
       if (success) {
         questStatus.status = 'pass'
 
-        let questsPassed = questChain.questsPassed
+        let questsPassed = chain.questsPassed
         questsPassed.push(questStatusId)
-        questChain.questsPassed = questsPassed
+        chain.questsPassed = questsPassed
 
         questsPassed = user.questsPassed
         questsPassed.push(questStatusId)
@@ -495,9 +449,9 @@ export function handleQuestProofsReviewed(
       } else {
         questStatus.status = 'fail'
 
-        let questsFailed = questChain.questsFailed
+        let questsFailed = chain.questsFailed
         questsFailed.push(questStatusId)
-        questChain.questsFailed = questsFailed
+        chain.questsFailed = questsFailed
 
         questsFailed = user.questsFailed
         questsFailed.push(questStatusId)
@@ -516,32 +470,24 @@ export function handleQuestProofsReviewed(
         .concat('-')
         .concat(event.logIndex.toHexString())
       let review = new ReviewSubmission(reviewId)
-      const metadata = Metadata.from(details)
       review.details = details
-      review.name = metadata.name
-      review.description = metadata.description
-      review.imageUrl = metadata.imageUrl
-      review.externalUrl = metadata.externalUrl
+      SubmissionMetadata.create(stripProtocol(details))
 
       review.quest = quest.id
-      review.questChain = questChain.id
+      review.questChain = chain.id
       review.questStatus = questStatus.id
 
       review.accepted = success
 
       let submissions = questStatus.submissions
       if (submissions.length > 0) {
-        let lastSubmission = submissions[submissions.length - 1]
-        review.proof = lastSubmission
+        review.proof = submissions[submissions.length - 1]
       }
 
       review.timestamp = event.block.timestamp
       review.txHash = event.transaction.hash
       review.user = user.id
       review.reviewer = reviewer.id
-
-      let search = createSearchString(metadata.name, metadata.description)
-      review.search = search
 
       review.save()
       questStatus.updatedAt = event.block.timestamp
@@ -559,7 +505,7 @@ export function handleQuestProofsReviewed(
       quest.save()
     }
     reviewer.save()
-    questChain = updateQuestChainCompletions(questChain)
-    questChain.save()
+    chain = updateQuestChainCompletions(chain)
+    chain.save()
   }
 }

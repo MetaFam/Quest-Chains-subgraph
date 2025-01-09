@@ -6,81 +6,7 @@ features:
 schema:
   file: ./src/schema.graphql
 dataSources:
-  {{#v0}}
-  - kind: ethereum/contract
-    name: QuestChainFactoryV0
-    network: {{network}}
-    source:
-      address: '{{factory}}'
-      abi: QuestChainFactoryV0
-      startBlock: {{blockNumber}}
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.5
-      language: wasm/assemblyscript
-      entities:
-        - QuestChain
-        - QuestStatus
-        - Quest
-        - User
-      abis:
-        - name: QuestChainV0
-          file: ./src/abis/v0/QuestChain.json
-        - name: QuestChainFactoryV0
-          file: ./src/abis/v0/QuestChainFactory.json
-        - name: QuestChainTokenV0
-          file: ./src/abis/v0/QuestChainToken.json
-        - name: ERC20
-          file: ./src/abis/ERC20.json
-      eventHandlers:
-        - event: QuestChainImplUpdated(indexed address,indexed address)
-          handler: handleQuestChainImplUpdated
-        - event: QuestChainCreated(indexed uint256,address)
-          handler: handleQuestChainCreated
-      file: ./src/mappings/v0/factory.ts
-  {{/v0}}
-  {{#v1}}
-  - kind: ethereum/contract
-    name: QuestChainFactoryV1{{version}}
-    network: {{network}}
-    source:
-      address: '{{factory}}'
-      abi: QuestChainFactoryV1
-      startBlock: {{blockNumber}}
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.5
-      language: wasm/assemblyscript
-      entities:
-        - QuestChain
-        - QuestStatus
-        - Quest
-        - User
-      abis:
-        - name: QuestChainV1
-          file: ./src/abis/v1/QuestChain.json
-        - name: QuestChainFactoryV1
-          file: ./src/abis/v1/QuestChainFactory.json
-        - name: QuestChainTokenV1
-          file: ./src/abis/v1/QuestChainToken.json
-        - name: ERC20
-          file: ./src/abis/ERC20.json
-      eventHandlers:
-        - event: FactorySetup()
-          handler: handleFactorySetup
-        - event: QuestChainCreated(uint256,address)
-          handler: handleQuestChainCreated
-        - event: AdminReplaced(address)
-          handler: handleAdminReplaced
-        - event: PaymentTokenReplaced(address)
-          handler: handlePaymentTokenReplaced
-        - event: UpgradeFeeReplaced(uint256)
-          handler: handleUpgradeFeeReplaced
-        - event: QuestChainUpgraded(address,address)
-          handler: handleQuestChainUpgraded
-      file: ./src/mappings/v1/factory.ts
-  {{/v1}}
-{{#v2}}
+  {{#v2}}
   - kind: ethereum/contract
     name: QuestChainFactoryV2{{version}}
     network: {{network}}
@@ -90,7 +16,7 @@ dataSources:
       startBlock: {{blockNumber}}
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - QuestChain
@@ -123,153 +49,13 @@ dataSources:
   {{/v2}}
 templates:
   - kind: ethereum/contract
-    name: QuestChainV0
-    network: {{network}}
-    source:
-      abi: QuestChainV0
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.5
-      language: wasm/assemblyscript
-      entities:
-        - QuestChain
-        - QuestStatus
-        - Quest
-        - User
-      abis:
-        - name: QuestChainV0
-          file: ./src/abis/v0/QuestChain.json
-        - name: QuestChainFactoryV0
-          file: ./src/abis/v0/QuestChainFactory.json
-        - name: QuestChainTokenV0
-          file: ./src/abis/v0/QuestChainToken.json
-      eventHandlers:
-        - event: QuestChainCreated(indexed address,string)
-          handler: handleChainCreated
-        - event: QuestChainEdited(indexed address,string)
-          handler: handleChainEdited
-        - event: RoleGranted(indexed bytes32,indexed address,indexed address)
-          handler: handleRoleGranted
-        - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
-          handler: handleRoleRevoked
-        - event: Paused(address)
-          handler: handlePaused
-        - event: Unpaused(address)
-          handler: handleUnpaused
-        - event: QuestPaused(indexed address,indexed uint256)
-          handler: handleQuestPaused
-        - event: QuestUnpaused(indexed address,indexed uint256)
-          handler: handleQuestUnpaused
-        - event: QuestCreated(indexed address,indexed uint256,string)
-          handler: handleQuestCreated
-        - event: QuestEdited(indexed address,indexed uint256,string)
-          handler: handleQuestEdited
-        - event: QuestProofSubmitted(indexed address,indexed uint256,string)
-          handler: handleQuestProofSubmitted
-        - event: QuestProofReviewed(indexed address,indexed address,indexed uint256,bool,string)
-          handler: handleQuestProofReviewed
-      file: ./src/mappings/v0/questChain.ts
-  - kind: ethereum/contract
-    name: QuestChainTokenV0
-    network: {{network}}
-    source:
-      abi: QuestChainTokenV0
-    mapping:
-      file: ./src/mappings/v0/token.ts
-      kind: ethereum/events
-      apiVersion: 0.0.5
-      language: wasm/assemblyscript
-      entities:
-        - QuestChain
-      abis:
-        - name: QuestChainV0
-          file: ./src/abis/v0/QuestChain.json
-        - name: QuestChainFactoryV0
-          file: ./src/abis/v0/QuestChainFactory.json
-        - name: QuestChainTokenV0
-          file: ./src/abis/v0/QuestChainToken.json
-      eventHandlers:
-        - event: TransferSingle(indexed address,indexed address,indexed address,uint256,uint256)
-          handler: handleTransferSingle
-        - event: URI(string,indexed uint256)
-          handler: handleURIUpdated
-  - kind: ethereum/contract
-    name: QuestChainV1
-    network: {{network}}
-    source:
-      abi: QuestChainV1
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.5
-      language: wasm/assemblyscript
-      entities:
-        - QuestChain
-        - QuestStatus
-        - Quest
-        - User
-      abis:
-        - name: QuestChainV1
-          file: ./src/abis/v1/QuestChain.json
-        - name: QuestChainFactoryV1
-          file: ./src/abis/v1/QuestChainFactory.json
-        - name: QuestChainTokenV1
-          file: ./src/abis/v1/QuestChainToken.json
-      eventHandlers:
-        - event: QuestChainInit(string,string[],bool)
-          handler: handleChainInit
-        - event: QuestChainEdited(address,string)
-          handler: handleChainEdited
-        - event: RoleGranted(indexed bytes32,indexed address,indexed address)
-          handler: handleRoleGranted
-        - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
-          handler: handleRoleRevoked
-        - event: Paused(address)
-          handler: handlePaused
-        - event: Unpaused(address)
-          handler: handleUnpaused
-        - event: QuestsPaused(address,uint256[],bool[])
-          handler: handleQuestsPaused
-        - event: QuestsCreated(address,string[])
-          handler: handleQuestsCreated
-        - event: QuestsEdited(address,uint256[],string[])
-          handler: handleQuestsEdited
-        - event: QuestProofsSubmitted(address,uint256[],string[])
-          handler: handleQuestProofsSubmitted
-        - event: QuestProofsReviewed(address,address[],uint256[],bool[],string[])
-          handler: handleQuestProofsReviewed
-      file: ./src/mappings/v1/questChain.ts
-  - kind: ethereum/contract
-    name: QuestChainTokenV1
-    network: {{network}}
-    source:
-      abi: QuestChainTokenV1
-    mapping:
-      file: ./src/mappings/v1/token.ts
-      kind: ethereum/events
-      apiVersion: 0.0.5
-      language: wasm/assemblyscript
-      entities:
-        - QuestChain
-      abis:
-        - name: QuestChainV1
-          file: ./src/abis/v1/QuestChain.json
-        - name: QuestChainFactoryV1
-          file: ./src/abis/v1/QuestChainFactory.json
-        - name: QuestChainTokenV1
-          file: ./src/abis/v1/QuestChainToken.json
-      eventHandlers:
-        - event: TransferSingle(indexed address,indexed address,indexed address,uint256,uint256)
-          handler: handleTransferSingle
-        - event: URI(string,indexed uint256)
-          handler: handleURIUpdated
-  - kind: ethereum/contract
     name: QuestChainV2
     network: {{network}}
     source:
       abi: QuestChainV2
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - QuestChain
@@ -315,7 +101,7 @@ templates:
     mapping:
       file: ./src/mappings/v2/token.ts
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - QuestChain
@@ -331,3 +117,52 @@ templates:
           handler: handleTransferSingle
         - event: URI(string,indexed uint256)
           handler: handleURIUpdated
+  - name: QuestChainTokenMetadata
+    kind: file/ipfs
+    mapping:
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/mappings/v2/metadata.ts
+      handler: handleQuestChainTokenMetadata
+      entities:
+        - QuestChainTokenMetadata
+      abis:
+        - name: QuestChainTokenV2
+          file: ./src/abis/v2/QuestChainToken.json
+  - name: QuestMetadata
+    kind: file/ipfs
+    mapping:
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/mappings/v2/metadata.ts
+      handler: handleQuestMetadata
+      entities:
+        - QuestMetadata
+      abis:
+        - name: QuestChainTokenV2
+          file: ./src/abis/v2/QuestChainToken.json
+  - name: QuestChainMetadata
+    kind: file/ipfs
+    mapping:
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/mappings/v2/metadata.ts
+      handler: handleQuestChainMetadata
+      entities:
+        - QuestChainMetadata
+        - Category
+      abis:
+        - name: QuestChainTokenV2
+          file: ./src/abis/v2/QuestChainToken.json
+  - name: SubmissionMetadata
+    kind: file/ipfs
+    mapping:
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/mappings/v2/metadata.ts
+      handler: handleSubmissionMetadata
+      entities:
+        - SubmissionMetadata
+      abis:
+        - name: QuestChainTokenV2
+          file: ./src/abis/v2/QuestChainToken.json

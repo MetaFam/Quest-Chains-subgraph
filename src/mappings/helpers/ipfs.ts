@@ -30,7 +30,7 @@ export class Metadata {
   }
 }
 
-function stripProtocol(details: string): string {
+export function stripProtocol(details: string): string {
   if (details.toLowerCase().startsWith('ipfs://')) {
     details = details.slice(7)
   }

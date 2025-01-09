@@ -22,29 +22,18 @@ type QuestChainToken @entity {
   questChain: QuestChain!
   tokenId: BigInt!
   tokenAddress: Bytes!
-  details: String!
-  name: String
-  description: String
-  imageUrl: String
-  animationUrl: String
-  mimeType: String
-  externalUrl: String
+  details: QuestChainTokenMetadata!
   owners: [User!]!
 }
 
-type QuestChainEdit @entity {
+type QuestChainTokenMetadata @entity {
   id: ID!
-  questChain: QuestChain!
-  editor: User!
-  timestamp: BigInt!
-  txHash: Bytes!
-  details: String
   name: String
   description: String
-  imageUrl: String
-  externalUrl: String
-  slug: String
-  categories: [String!]
+  image: String
+  animationURL: String
+  externalURL: String
+  mimeType: String
 }
 
 type QuestChain @entity {
@@ -67,14 +56,7 @@ type QuestChain @entity {
   editedBy: User
   editedAt: BigInt
   creationTxHash: Bytes!
-  details: String
-  name: String
-  description: String
-  search: String
-  imageUrl: String
-  externalUrl: String
-  slug: String
-  categories: [String!]
+  details: QuestChainMetadata
   questsPassed: [QuestStatus!]!
   questsFailed: [QuestStatus!]!
   questsInReview: [QuestStatus!]!
@@ -90,17 +72,29 @@ type QuestChain @entity {
   premium: Boolean!
 }
 
-type QuestEdit @entity {
+type QuestChainMetadata @entity {
   id: ID!
-  quest: Quest!
+  name: String
+  description: String
+  image: String
+  externalURL: String
+  slug: String
+  categories: [Category!]
+  search: String
+}
+
+type Category @entity {
+  id: ID!
+  name: String!
+}
+
+type QuestChainEdit @entity {
+  id: ID!
+  questChain: QuestChain!
   editor: User!
   timestamp: BigInt!
   txHash: Bytes!
-  details: String
-  name: String
-  description: String
-  imageUrl: String
-  externalUrl: String
+  details: QuestChainMetadata
 }
 
 type Quest @entity {
@@ -114,12 +108,7 @@ type Quest @entity {
   completedQuesters: [User!]!
   numQuesters: Int!
   questers: [User!]!
-  details: String!
-  name: String
-  description: String
-  search: String
-  imageUrl: String
-  externalUrl: String
+  details: QuestMetadata!
   createdBy: User!
   createdAt: BigInt!
   updatedAt: BigInt!
@@ -135,8 +124,26 @@ type Quest @entity {
   submittedReviews: [ReviewSubmission!]! @derivedFrom(field: "quest")
 }
 
-type User @entity {
+type QuestMetadata @entity {
   id: ID!
+  name: String
+  description: String
+  image: String
+  externalURL: String
+  search: String
+}
+
+type QuestEdit @entity {
+  id: ID!
+  quest: Quest!
+  editor: User!
+  timestamp: BigInt!
+  txHash: Bytes!
+  details: QuestMetadata!
+}
+
+type User @entity {
+  id: Bytes!
   questsPassed: [QuestStatus!]!
   questsFailed: [QuestStatus!]!
   questsInReview: [QuestStatus!]!
@@ -177,14 +184,18 @@ type ProofSubmission @entity {
   questChain: QuestChain!
   questStatus: QuestStatus!
   user: User!
-  details: String!
-  name: String
-  description: String
-  search: String
-  imageUrl: String
-  externalUrl: String
+  details: SubmissionMetadata!
   timestamp: BigInt!
   txHash: Bytes!
+}
+
+type SubmissionMetadata @entity {
+  id: ID!
+  name: String
+  description: String
+  image: String
+  externalURL: String
+  search: String
 }
 
 type ReviewSubmission @entity {
@@ -196,12 +207,7 @@ type ReviewSubmission @entity {
   accepted: Boolean!
   user: User!
   reviewer: User!
-  details: String!
-  name: String
-  description: String
-  search: String
-  imageUrl: String
-  externalUrl: String
+  details: SubmissionMetadata!
   timestamp: BigInt!
   txHash: Bytes!
 }
