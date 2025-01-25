@@ -95,14 +95,14 @@ export function createQuest(
   event: ethereum.Event,
 ): Quest {
   let quest = getQuest(address, questIndex)
+  quest.createdAt = event.block.timestamp
+  quest.updatedAt = event.block.timestamp
 
   quest.details = details
   QuestMetadata.create(stripProtocol(details))
   quest.creationTxHash = event.transaction.hash
 
   let user = getUser(creator)
-  quest.createdAt = event.block.timestamp
-  quest.updatedAt = event.block.timestamp
   quest.createdBy = user.id
   user.save()
 

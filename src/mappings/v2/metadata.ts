@@ -13,7 +13,7 @@ import {
   QuestMetadata,
   SubmissionMetadata,
 } from '../../types/schema'
-import { createSearchString } from '../helpers'
+import { createSearchString, getNetwork } from '../helpers'
 
 class KVPair {
   constructor(
@@ -34,6 +34,7 @@ export function handleQuestChainTokenMetadata(content: Bytes): void {
   const out = new QuestChainTokenMetadata('ipfs://' + dataSource.stringParam())
   const ipfs = json.fromBytes(content).toObject()
   if (ipfs) {
+    out.network = getNetwork()
     copyValues(out, [
       new KVPair('image', ipfs.get('image')),
       new KVPair('name', ipfs.get('name')),
@@ -65,6 +66,7 @@ export function handleQuestChainMetadata(content: Bytes): void {
   const out = new QuestChainMetadata('ipfs://' + dataSource.stringParam())
   const ipfs = json.fromBytes(content).toObject()
   if (ipfs) {
+    out.network = getNetwork()
     copyValues(out, [
       new KVPair('image', ipfs.get('image')),
       new KVPair('name', ipfs.get('name')),

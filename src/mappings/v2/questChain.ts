@@ -258,9 +258,6 @@ export function handleQuestsEdited(event: QuestsEditedEvent): void {
       quest.editedAt = event.block.timestamp
       quest.updatedAt = event.block.timestamp
 
-      quest.editedAt = event.block.timestamp
-      quest.editedBy = user.id
-
       user.save()
       quest.save()
     }
@@ -349,7 +346,7 @@ export function handleQuestProofsSubmitted(
         .concat(event.block.timestamp.toHexString())
         .concat('-')
         .concat(event.logIndex.toHexString())
-      let proof = new ProofSubmission(proofId)
+      const proof = new ProofSubmission(proofId)
       proof.details = details
       SubmissionMetadata.create(stripProtocol(details))
 
@@ -360,7 +357,7 @@ export function handleQuestProofsSubmitted(
       proof.txHash = event.transaction.hash
       proof.user = user.id
 
-      let submissions = status.submissions
+      const submissions = status.submissions
       submissions.push(proof.id)
       status.submissions = submissions
 

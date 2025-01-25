@@ -32,19 +32,19 @@ export function handleFactorySetup(event: FactorySetupEvent): void {
 function setupGlobalNode(globalNode: Global, factoryAddress: Address): void {
   globalNode.factoryAddress = factoryAddress
 
-  let contract = QuestChainFactory.bind(factoryAddress)
-  globalNode.templateAddress = contract.questChainTemplate()
-  let tokenAddress = contract.questChainToken()
+  const contract = QuestChainFactory.bind(factoryAddress)
+  globalNode.templateAddress = contract.chainTemplate()
+  const tokenAddress = contract.chainToken()
   globalNode.tokenAddress = tokenAddress
   globalNode.adminAddress = contract.admin()
-  globalNode.treasuryAddress = contract.treasury()
-  let paymentTokenAddress = contract.paymentToken()
-  let paymentToken = getERC20Token(paymentTokenAddress)
-  globalNode.paymentToken = paymentToken.id
-  globalNode.upgradeFee = contract.upgradeFee()
+  // globalNode.treasuryAddress = contract.treasury()
+  // const paymentTokenAddress = contract.paymentToken()
+  // const paymentToken = getERC20Token(paymentTokenAddress)
+  // globalNode.paymentToken = paymentToken.id
+  // globalNode.upgradeFee = contract.upgradeFee()
 
   QuestChainTokenTemplate.create(tokenAddress)
-  paymentToken.save()
+  // paymentToken.save()
   globalNode.save()
 }
 

@@ -1,6 +1,8 @@
 import { BigInt, Bytes, TypedMap } from '@graphprotocol/graph-ts'
 import { QuestChain, Quest, QuestStatus } from '../../types/schema'
 
+type i32 = number
+
 function questChainCompletedByUser(
   chainId: string,
   questCount: i32,
