@@ -82,7 +82,6 @@ type QuestChainMetadata @entity {
   externalURL: String
   slug: String
   categories: [Category!]
-  search: String
 }
 
 type Category @entity {
@@ -126,13 +125,35 @@ type Quest @entity {
   submittedReviews: [ReviewSubmission!]! @derivedFrom(field: "quest")
 }
 
+type _Schema_
+  @fulltext(
+    name: "questSearch"
+    language: en
+    algorithm: proximityRank
+    include: [
+      {
+        entity: "QuestMetadata",
+        fields: [
+          { name: "name" },
+          { name: "description" }
+        ]
+      },
+      {
+        entity: "QuestChainMetadata",
+        fields: [
+          { name: "name" },
+          { name: "description" }
+        ]
+      },
+    ]
+  )
+
 type QuestMetadata @entity {
   id: ID!
   name: String
   description: String
   image: String
   externalURL: String
-  search: String
 }
 
 type QuestEdit @entity {
@@ -197,7 +218,6 @@ type SubmissionMetadata @entity {
   description: String
   image: String
   externalURL: String
-  search: String
 }
 
 type ReviewSubmission @entity {

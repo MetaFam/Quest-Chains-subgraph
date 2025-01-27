@@ -57,7 +57,6 @@ export function handleQuestMetadata(content: Bytes): void {
       new KVPair('description', ipfs.get('description')),
       new KVPair('externalURL', ipfs.get('external_url')),
     ])
-    out.search = createSearchString(out.name, out.description)
     out.save()
   }
 }
@@ -89,8 +88,6 @@ export function handleQuestChainMetadata(content: Bytes): void {
         return lower
       })
     }
-
-    out.search = createSearchString(out.name, out.description)
 
     out.save()
   }
