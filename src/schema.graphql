@@ -75,6 +75,7 @@ type QuestChain @entity {
 
 type QuestChainMetadata @entity {
   id: ID!
+  questChain: QuestChain! @derivedFrom(field: "details")
   network: String!
   name: String
   description: String
@@ -138,6 +139,20 @@ type _Schema_
           { name: "description" }
         ]
       },
+      # {
+      #   entity: "QuestChainMetadata",
+      #   fields: [
+      #     { name: "name" },
+      #     { name: "description" }
+      #   ]
+      # },
+    ]
+  )
+  @fulltext(
+    name: "chainSearch"
+    language: en
+    algorithm: proximityRank
+    include: [
       {
         entity: "QuestChainMetadata",
         fields: [
@@ -150,6 +165,7 @@ type _Schema_
 
 type QuestMetadata @entity {
   id: ID!
+  quest: Quest! @derivedFrom(field: "details")
   name: String
   description: String
   image: String
