@@ -111,13 +111,13 @@
     "inputs": [
       {
         "indexed": false,
-        "internalType": "uint256",
-        "name": "index",
-        "type": "uint256"
+        "internalType": "address[]",
+        "name": "admins",
+        "type": "address[]"
       },
       {
         "indexed": false,
-        "internalType": "address",
+        "internalType": "contract IShelf",
         "name": "shelf",
         "type": "address"
       }
@@ -329,6 +329,32 @@
         "internalType": "address",
         "name": "",
         "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "shelfTemplate",
+    "outputs": [
+      {
+        "internalType": "contract IShelf",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "tokenCount",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",

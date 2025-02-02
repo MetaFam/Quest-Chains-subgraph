@@ -51,7 +51,7 @@ type QuestChain @entity {
   admins: [User!]!
   reviewers: [User!]!
   editors: [User!]!
-  createdBy: User!
+  creator: User!
   createdAt: BigInt!
   updatedAt: BigInt!
   editedBy: User
@@ -111,7 +111,7 @@ type Quest @entity {
   numQuesters: Int!
   questers: [User!]!
   details: QuestMetadata!
-  createdBy: User!
+  creator: User!
   createdAt: BigInt!
   updatedAt: BigInt!
   editedBy: User
@@ -248,4 +248,30 @@ type ReviewSubmission @entity {
   details: SubmissionMetadata!
   timestamp: BigInt!
   txHash: Bytes!
+}
+
+type Shelf @entity {
+  id: ID!
+  tokenId: BigInt! @unique
+  address: Bytes!
+  chainId: String!
+  factoryAddress: Bytes!
+  creator: User!
+  admins: [User!]!
+  createdAt: BigInt!
+  updatedAt: BigInt!
+  creationTxHash: Bytes!
+  details: ShelfMetadata
+  contents: [QuestChain!]!
+  size: Int!
+}
+
+type ShelfMetadata @entity {
+  id: ID!
+  shelf: Shelf! @derivedFrom(field: "details")
+  name: String
+  description: String
+  cover: String
+  slug: String
+  categories: [Category!]
 }

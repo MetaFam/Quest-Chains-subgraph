@@ -27,6 +27,8 @@ dataSources:
       abis:
         - name: QuestChainV2
           file: ./src/abis/v2/QuestChain.json
+        - name: Shelf
+          file: ./src/abis/v2/Shelf.json
         - name: QuestChainFactoryV2
           file: ./src/abis/v2/QuestChainFactory.json
         - name: QuestChainTokenV2
@@ -38,6 +40,8 @@ dataSources:
           handler: handleFactorySetup
         - event: QuestChainCreated(uint256,address)
           handler: handleQuestChainCreated
+        - event: ShelfCreated(address[],address)
+          handler: handleShelfCreated
         - event: AdminReplaced(address)
           handler: handleAdminReplaced
         - event: PaymentTokenReplaced(address)
@@ -95,6 +99,30 @@ templates:
           handler: handleQuestProofsReviewed
       file: ./src/mappings/v2/questChain.ts
   - kind: ethereum/contract
+    name: Shelf
+    network: {{network}}
+    source:
+      abi: Shelf
+    mapping:
+      file: ./src/mappings/v2/shelf.ts
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Shelf
+      abis:
+        - name: Shelf
+          file: ./src/abis/v2/Shelf.json
+        - name: QuestChainFactoryV2
+          file: ./src/abis/v2/QuestChainFactory.json
+        - name: QuestChainTokenV2
+          file: ./src/abis/v2/QuestChainToken.json
+      eventHandlers:
+        - event: ShelfOrdered(address[])
+          handler: handleShelfOrdered
+        - event: ShelfEdited(string)
+          handler: handleShelfEdited
+  - kind: ethereum/contract
     name: QuestChainTokenV2
     network: {{network}}
     source:
@@ -142,6 +170,18 @@ templates:
       abis:
         - name: QuestChainTokenV2
           file: ./src/abis/v2/QuestChainToken.json
+  - name: ShelfMetadata
+    kind: file/ipfs
+    mapping:
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/mappings/v2/metadata.ts
+      handler: handleShelfMetadata
+      entities:
+        - ShelfMetadata
+      abis:
+        - name: Shelf
+          file: ./src/abis/v2/Shelf.json
   - name: QuestChainMetadata
     kind: file/ipfs
     mapping:

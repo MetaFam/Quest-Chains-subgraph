@@ -69,7 +69,7 @@ export function handleQuestChainCreated(event: QuestChainCreatedEvent): void {
   questChain.factoryAddress = event.address
   questChain.createdAt = event.block.timestamp
   questChain.updatedAt = event.block.timestamp
-  questChain.createdBy = user.id
+  questChain.creator = user.id
   questChain.creationTxHash = event.transaction.hash
 
   questChain.version = '1'

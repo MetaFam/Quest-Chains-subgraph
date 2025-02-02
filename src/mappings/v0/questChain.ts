@@ -215,7 +215,7 @@ export function handleQuestCreated(event: QuestCreatedEvent): void {
     let user = getUser(event.params.creator)
     quest.createdAt = event.block.timestamp
     quest.updatedAt = event.block.timestamp
-    quest.createdBy = user.id
+    quest.creator = user.id
     user.save()
 
     quest.usersPassed = new Array<string>()

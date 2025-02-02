@@ -1,6 +1,13 @@
 import { Address, BigInt, Bytes, ethereum } from '@graphprotocol/graph-ts'
 import { ERC20 } from '../../types/QuestChainFactoryV2/ERC20'
-import { User, Global, QuestChain, Quest, ERC20Token } from '../../types/schema'
+import {
+  User,
+  Global,
+  QuestChain,
+  Quest,
+  Shelf,
+  ERC20Token,
+} from '../../types/schema'
 import { getNetwork } from './network'
 import { ADDRESS_ZERO } from './constants'
 import { createSearchString } from './strings'
@@ -87,6 +94,21 @@ export function getQuestChain(address: Address): QuestChain {
   return questChain as QuestChain
 }
 
+export function getShelf(address: Address): Shelf {
+  let shelf = Shelf.load(address.toHexString())
+  if (shelf == null) {
+    const network = getNetwork()
+
+    shelf = new Shelf(address.toHexString())
+
+    shelf.address = address
+    shelf.chainId = network
+
+    shelf.admins = new Array<Bytes>()
+  }
+  return shelf as Shelf
+}
+
 export function createQuest(
   address: Address,
   questIndex: BigInt,
@@ -103,7 +125,7 @@ export function createQuest(
   quest.creationTxHash = event.transaction.hash
 
   let user = getUser(creator)
-  quest.createdBy = user.id
+  quest.creator = user.id
   user.save()
 
   return quest

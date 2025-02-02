@@ -11,6 +11,7 @@ import {
   QuestChainMetadata,
   QuestChainTokenMetadata,
   QuestMetadata,
+  ShelfMetadata,
   SubmissionMetadata,
 } from '../../types/schema'
 import { createSearchString, getNetwork } from '../helpers'
@@ -71,6 +72,36 @@ export function handleQuestChainMetadata(content: Bytes): void {
       new KVPair('name', ipfs.get('name')),
       new KVPair('description', ipfs.get('description')),
       new KVPair('externalURL', ipfs.get('external_url')),
+      new KVPair('slug', ipfs.get('slug')),
+    ])
+
+    const categories = ipfs.get('categories')
+    if (categories) {
+      out.categories = categories.toArray().map<string>(cat => {
+        const str = cat.toString()
+        const lower = str.toLowerCase()
+        let db = Category.load(lower)
+        if (!db) {
+          db = new Category(lower)
+          db.name = str
+          db.save()
+        }
+        return lower
+      })
+    }
+
+    out.save()
+  }
+}
+
+export function handleShelfMetadata(content: Bytes): void {
+  const out = new ShelfMetadata('ipfs://' + dataSource.stringParam())
+  const ipfs = json.fromBytes(content).toObject()
+  if (ipfs) {
+    copyValues(out, [
+      new KVPair('name', ipfs.get('name')),
+      new KVPair('description', ipfs.get('description')),
+      new KVPair('cover', ipfs.get('cover')),
       new KVPair('slug', ipfs.get('slug')),
     ])
 

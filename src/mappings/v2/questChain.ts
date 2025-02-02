@@ -44,7 +44,7 @@ export function handleChainInit(event: QuestChainInitEvent): void {
   QuestChainMetadata.create(stripProtocol(details))
   chain.paused = event.params.paused
 
-  const creator = Address.fromBytes(chain.createdBy)
+  const creator = Address.fromBytes(chain.creator)
   for (let i = 0; i < event.params.quests.length; i++) {
     const details = event.params.quests[i]
     const quest = createQuest(
@@ -176,7 +176,7 @@ export function handleQuestsCreated(event: QuestsCreatedEvent): void {
   let chain = QuestChain.load(event.address.toHexString())
   if (chain != null) {
     const totalQuestCount = chain.totalQuestCount
-    const creator = Address.fromBytes(chain.createdBy)
+    const creator = Address.fromBytes(chain.creator)
 
     for (let i = 0; i < event.params.detailsList.length; i++) {
       const questIndex = BigInt.fromI32(totalQuestCount + i)

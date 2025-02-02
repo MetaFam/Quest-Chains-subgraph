@@ -2,6 +2,7 @@ import { log, Address } from '@graphprotocol/graph-ts'
 
 import {
   QuestChainCreated as QuestChainCreatedEvent,
+  ShelfCreated as ShelfCreatedEvent,
   FactorySetup as FactorySetupEvent,
   AdminReplaced as AdminReplacedEvent,
   PaymentTokenReplaced as PaymentTokenReplacedEvent,
@@ -10,6 +11,7 @@ import {
   QuestChainFactoryV2 as QuestChainFactory,
 } from '../../types/QuestChainFactoryV2/QuestChainFactoryV2'
 import {
+  Shelf as ShelfTemplate,
   QuestChainV2 as QuestChainTemplate,
   QuestChainTokenV2 as QuestChainTokenTemplate,
 } from '../../types/templates'
@@ -18,6 +20,7 @@ import {
   getUser,
   getGlobal,
   getQuestChain,
+  getShelf,
   getERC20Token,
   ADDRESS_ZERO,
 } from '../helpers'
@@ -82,7 +85,7 @@ export function handleQuestChainCreated(event: QuestChainCreatedEvent): void {
   questChain.factoryAddress = event.address
   questChain.createdAt = event.block.timestamp
   questChain.updatedAt = event.block.timestamp
-  questChain.createdBy = user.id
+  questChain.creator = user.id
   questChain.creationTxHash = event.transaction.hash
 
   questChain.version = '2'
@@ -101,6 +104,34 @@ export function handleQuestChainCreated(event: QuestChainCreatedEvent): void {
 
   user.save()
   questChain.save()
+}
+
+export function handleShelfCreated(event: ShelfCreatedEvent): void {
+  let shelf = getShelf(event.params.shelf)
+
+  log.info('handleShelfCreated {}', [event.params.shelf.toHexString()])
+
+  let user = getUser(event.transaction.from)
+
+  shelf.factoryAddress = event.address
+  shelf.createdAt = event.block.timestamp
+  shelf.updatedAt = event.block.timestamp
+  shelf.creator = user.id
+  shelf.creationTxHash = event.transaction.hash
+
+  ShelfTemplate.create(event.params.shelf)
+
+  let globalNode = getGlobal()
+
+  if (globalNode.factoryAddress == ADDRESS_ZERO) {
+    setupGlobalNode(globalNode, event.address)
+  }
+
+  globalNode.questChainCount = globalNode.questChainCount + 1
+  globalNode.save()
+
+  user.save()
+  shelf.save()
 }
 
 export function handleQuestChainUpgraded(event: QuestChainUpgradedEvent): void {
