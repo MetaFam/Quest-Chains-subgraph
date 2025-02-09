@@ -1,13 +1,18 @@
-import { Bytes } from '@graphprotocol/graph-ts'
+import { BigInt, Bytes } from '@graphprotocol/graph-ts'
 import { QuestChainToken } from '../../types/schema'
 import { QuestChainTokenMetadata } from '../../types/templates'
-
 import {
   QuestChainTokenV2 as QuestChainTokenContract,
   TransferSingle as TransferSingleEvent,
   URI as URIEvent,
 } from '../../types/templates/QuestChainTokenV2/QuestChainTokenV2'
-import { ADDRESS_ZERO, removeFromArray, Metadata, getUser } from '../helpers'
+import {
+  ADDRESS_ZERO,
+  removeFromArray,
+  getUser,
+  getNetwork,
+  hexToI32,
+} from '../helpers'
 import { stripProtocol } from '../helpers/ipfs'
 
 export function handleTransferSingle(event: TransferSingleEvent): void {
@@ -16,9 +21,7 @@ export function handleTransferSingle(event: TransferSingleEvent): void {
     .concat('-')
     .concat(event.params.id.toHexString())
   let token = QuestChainToken.load(tokenId)
-  if (token == null) {
-    return
-  }
+  if (token == null) return
   if (event.params.from == ADDRESS_ZERO) {
     let user = getUser(event.params.to)
     let owners = token.owners
@@ -43,6 +46,7 @@ export function handleURIUpdated(event: URIEvent): void {
   if (token == null) {
     token = new QuestChainToken(tokenId)
     token.owners = new Array<Bytes>()
+    token.network = hexToI32(getNetwork())
   }
   let contract = QuestChainTokenContract.bind(event.address)
   token.questChain = contract.tokenOwner(event.params.id).toHexString()

@@ -3,6 +3,7 @@ import { log, Address } from '@graphprotocol/graph-ts'
 import {
   QuestChainCreated as QuestChainCreatedEvent,
   ShelfCreated as ShelfCreatedEvent,
+  CollectionCreated as CollectionCreatedEvent,
   FactorySetup as FactorySetupEvent,
   AdminReplaced as AdminReplacedEvent,
   PaymentTokenReplaced as PaymentTokenReplacedEvent,
@@ -12,65 +13,70 @@ import {
 } from '../../types/QuestChainFactoryV2/QuestChainFactoryV2'
 import {
   Shelf as ShelfTemplate,
+  Collection as CollectionTemplate,
   QuestChainV2 as QuestChainTemplate,
   QuestChainTokenV2 as QuestChainTokenTemplate,
 } from '../../types/templates'
 
 import {
   getUser,
-  getGlobal,
+  getFactory,
   getQuestChain,
   getShelf,
+  getCollection,
   getERC20Token,
   ADDRESS_ZERO,
+  getNetwork,
 } from '../helpers'
 
-import { Global } from '../../types/schema'
+import { Factory } from '../../types/schema'
 
 export function handleFactorySetup(event: FactorySetupEvent): void {
-  let globalNode = getGlobal()
-  setupGlobalNode(globalNode, event.address)
+  let factory = getFactory()
+  setupFactory(factory, event.address)
 }
 
-function setupGlobalNode(globalNode: Global, factoryAddress: Address): void {
-  globalNode.factoryAddress = factoryAddress
+function setupFactory(factory: Factory, address: Address): void {
+  factory.address = address
 
-  const contract = QuestChainFactory.bind(factoryAddress)
-  globalNode.templateAddress = contract.chainTemplate()
+  const contract = QuestChainFactory.bind(address)
+  factory.chainTemplateAddress = contract.chainTemplate()
+  factory.shelfTemplateAddress = contract.shelfTemplate()
+  factory.collectionTemplateAddress = contract.collectionTemplate()
   const tokenAddress = contract.chainToken()
-  globalNode.tokenAddress = tokenAddress
-  globalNode.adminAddress = contract.admin()
-  // globalNode.treasuryAddress = contract.treasury()
+  factory.tokenAddress = tokenAddress
+  factory.adminAddress = contract.admin()
+  // factory.treasuryAddress = contract.treasury()
   // const paymentTokenAddress = contract.paymentToken()
   // const paymentToken = getERC20Token(paymentTokenAddress)
-  // globalNode.paymentToken = paymentToken.id
-  // globalNode.upgradeFee = contract.upgradeFee()
+  // factory.paymentToken = paymentToken.id
+  // factory.upgradeFee = contract.upgradeFee()
 
   QuestChainTokenTemplate.create(tokenAddress)
   // paymentToken.save()
-  globalNode.save()
+  factory.save()
 }
 
 export function handleAdminReplaced(event: AdminReplacedEvent): void {
-  let globalNode = getGlobal()
-  globalNode.adminAddress = event.params.admin
-  globalNode.save()
+  let factory = getFactory()
+  factory.adminAddress = event.params.admin
+  factory.save()
 }
 
 export function handlePaymentTokenReplaced(
   event: PaymentTokenReplacedEvent,
 ): void {
-  let globalNode = getGlobal()
+  let factory = getFactory()
   let paymentTokenAddress = event.params.paymentToken
   let paymentToken = getERC20Token(paymentTokenAddress)
-  globalNode.paymentToken = paymentToken.id
-  globalNode.save()
+  factory.paymentToken = paymentToken.id
+  factory.save()
 }
 
 export function handleUpgradeFeeReplaced(event: UpgradeFeeReplacedEvent): void {
-  let globalNode = getGlobal()
-  globalNode.upgradeFee = event.params.upgradeFee
-  globalNode.save()
+  let factory = getFactory()
+  factory.upgradeFee = event.params.upgradeFee
+  factory.save()
 }
 
 export function handleQuestChainCreated(event: QuestChainCreatedEvent): void {
@@ -82,9 +88,9 @@ export function handleQuestChainCreated(event: QuestChainCreatedEvent): void {
 
   let user = getUser(event.transaction.from)
 
-  questChain.factoryAddress = event.address
-  questChain.createdAt = event.block.timestamp
-  questChain.updatedAt = event.block.timestamp
+  questChain.factory = getNetwork()
+  questChain.createdAt = event.block.timestamp.toI64()
+  questChain.updatedAt = event.block.timestamp.toI64()
   questChain.creator = user.id
   questChain.creationTxHash = event.transaction.hash
 
@@ -93,14 +99,14 @@ export function handleQuestChainCreated(event: QuestChainCreatedEvent): void {
 
   QuestChainTemplate.create(event.params.questChain)
 
-  let globalNode = getGlobal()
+  let factory = getFactory()
 
-  if (globalNode.factoryAddress == ADDRESS_ZERO) {
-    setupGlobalNode(globalNode, event.address)
+  if (factory.address == ADDRESS_ZERO) {
+    setupFactory(factory, event.address)
   }
 
-  globalNode.questChainCount = globalNode.questChainCount + 1
-  globalNode.save()
+  factory.questChainCount += 1
+  factory.save()
 
   user.save()
   questChain.save()
@@ -113,25 +119,38 @@ export function handleShelfCreated(event: ShelfCreatedEvent): void {
 
   let user = getUser(event.transaction.from)
 
-  shelf.factoryAddress = event.address
-  shelf.createdAt = event.block.timestamp
-  shelf.updatedAt = event.block.timestamp
+  shelf.tokenId = event.params.tokenId
+  shelf.factory = getNetwork()
+  shelf.createdAt = event.block.timestamp.toI64()
+  shelf.updatedAt = event.block.timestamp.toI64()
   shelf.creator = user.id
   shelf.creationTxHash = event.transaction.hash
 
   ShelfTemplate.create(event.params.shelf)
 
-  let globalNode = getGlobal()
-
-  if (globalNode.factoryAddress == ADDRESS_ZERO) {
-    setupGlobalNode(globalNode, event.address)
-  }
-
-  globalNode.questChainCount = globalNode.questChainCount + 1
-  globalNode.save()
-
   user.save()
   shelf.save()
+}
+
+export function handleCollectionCreated(event: CollectionCreatedEvent): void {
+  let collection = getCollection(event.params.collection)
+
+  log.info('handleCollectionCreated {}', [
+    event.params.collection.toHexString(),
+  ])
+
+  let user = getUser(event.transaction.from)
+
+  collection.factory = getNetwork()
+  collection.createdAt = event.block.timestamp.toI64()
+  collection.updatedAt = event.block.timestamp.toI64()
+  collection.creator = user.id
+  collection.creationTxHash = event.transaction.hash
+
+  CollectionTemplate.create(event.params.collection)
+
+  user.save()
+  collection.save()
 }
 
 export function handleQuestChainUpgraded(event: QuestChainUpgradedEvent): void {

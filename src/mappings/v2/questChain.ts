@@ -79,7 +79,7 @@ export function handleChainEdited(event: QuestChainEditedEvent): void {
 
     const chainEdit = new QuestChainEdit(chainEditId)
     chainEdit.details = chain.details
-    chainEdit.timestamp = event.block.timestamp
+    chainEdit.timestamp = event.block.timestamp.toI64()
     chainEdit.txHash = event.transaction.hash
     chainEdit.questChain = chain.id
     chainEdit.editor = user.id
@@ -89,8 +89,8 @@ export function handleChainEdited(event: QuestChainEditedEvent): void {
     chain.details = details
     QuestChainMetadata.create(stripProtocol(details))
     chain.editedBy = user.id
-    chain.editedAt = event.block.timestamp
-    chain.updatedAt = event.block.timestamp
+    chain.editedAt = event.block.timestamp.toI64()
+    chain.updatedAt = event.block.timestamp.toI64()
 
     chain.save()
   }
@@ -245,7 +245,7 @@ export function handleQuestsEdited(event: QuestsEditedEvent): void {
 
       const questEdit = new QuestEdit(questEditId)
       questEdit.details = quest.details
-      questEdit.timestamp = event.block.timestamp
+      questEdit.timestamp = event.block.timestamp.toI64()
       questEdit.txHash = event.transaction.hash
       questEdit.quest = quest.id
       questEdit.editor = user.id
@@ -255,8 +255,8 @@ export function handleQuestsEdited(event: QuestsEditedEvent): void {
 
       QuestMetadata.create(stripProtocol(details))
       quest.editedBy = user.id
-      quest.editedAt = event.block.timestamp
-      quest.updatedAt = event.block.timestamp
+      quest.editedAt = event.block.timestamp.toI64()
+      quest.updatedAt = event.block.timestamp.toI64()
 
       user.save()
       quest.save()
@@ -353,7 +353,7 @@ export function handleQuestProofsSubmitted(
       proof.quest = quest.id
       proof.questChain = chain.id
       proof.questStatus = status.id
-      proof.timestamp = event.block.timestamp
+      proof.timestamp = event.block.timestamp.toI64()
       proof.txHash = event.transaction.hash
       proof.user = user.id
 
@@ -368,7 +368,7 @@ export function handleQuestProofsSubmitted(
       quest.numQuesters = questers.length
 
       proof.save()
-      status.updatedAt = event.block.timestamp
+      status.updatedAt = event.block.timestamp.toI64()
       status.save()
 
       if (status.status === 'pass') {
@@ -481,13 +481,13 @@ export function handleQuestProofsReviewed(
         review.proof = submissions[submissions.length - 1]
       }
 
-      review.timestamp = event.block.timestamp
+      review.timestamp = event.block.timestamp.toI64()
       review.txHash = event.transaction.hash
       review.user = user.id
       review.reviewer = reviewer.id
 
       review.save()
-      questStatus.updatedAt = event.block.timestamp
+      questStatus.updatedAt = event.block.timestamp.toI64()
       questStatus.save()
 
       if (success) {

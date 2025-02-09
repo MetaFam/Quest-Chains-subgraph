@@ -22,8 +22,21 @@ export function createSearchString(
     return (description as string).toLowerCase()
   }
 
-  return (name as string)
+  return name
     .toLowerCase()
     .concat(' ')
     .concat((description as string).toLowerCase())
+}
+
+export function hexToI32(hex: string): i32 {
+  let base = 10
+  if (hex.startsWith('0x')) {
+    hex = hex.slice(2)
+    base = 16
+  } else if (hex.startsWith('0b')) {
+    hex = hex.slice(2)
+    base = 2
+  }
+
+  return parseInt(hex, base) as i32
 }

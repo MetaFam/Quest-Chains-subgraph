@@ -12,6 +12,7 @@ import {
   QuestChainTokenMetadata,
   QuestMetadata,
   ShelfMetadata,
+  CollectionMetadata,
   SubmissionMetadata,
 } from '../../types/schema'
 import { createSearchString, getNetwork } from '../helpers'
@@ -31,11 +32,27 @@ function copyValues(out: Entity, vals: Array<KVPair>): void {
   }
 }
 
+function mapCategories(cats: JSONValue | null): Array<string> {
+  if (cats) {
+    return cats.toArray().map<string>(cat => {
+      const str = cat.toString()
+      const lower = str.toLowerCase()
+      let db = Category.load(lower)
+      if (!db) {
+        db = new Category(lower)
+        db.name = str
+        db.save()
+      }
+      return lower
+    })
+  }
+  return []
+}
+
 export function handleQuestChainTokenMetadata(content: Bytes): void {
   const out = new QuestChainTokenMetadata('ipfs://' + dataSource.stringParam())
   const ipfs = json.fromBytes(content).toObject()
   if (ipfs) {
-    out.network = getNetwork()
     copyValues(out, [
       new KVPair('image', ipfs.get('image')),
       new KVPair('name', ipfs.get('name')),
@@ -53,10 +70,8 @@ export function handleQuestMetadata(content: Bytes): void {
   const ipfs = json.fromBytes(content).toObject()
   if (ipfs) {
     copyValues(out, [
-      new KVPair('image', ipfs.get('image')),
       new KVPair('name', ipfs.get('name')),
       new KVPair('description', ipfs.get('description')),
-      new KVPair('externalURL', ipfs.get('external_url')),
     ])
     out.save()
   }
@@ -66,29 +81,15 @@ export function handleQuestChainMetadata(content: Bytes): void {
   const out = new QuestChainMetadata('ipfs://' + dataSource.stringParam())
   const ipfs = json.fromBytes(content).toObject()
   if (ipfs) {
-    out.network = getNetwork()
     copyValues(out, [
-      new KVPair('image', ipfs.get('image')),
+      new KVPair('image', ipfs.get('cover')),
       new KVPair('name', ipfs.get('name')),
       new KVPair('description', ipfs.get('description')),
       new KVPair('externalURL', ipfs.get('external_url')),
       new KVPair('slug', ipfs.get('slug')),
     ])
 
-    const categories = ipfs.get('categories')
-    if (categories) {
-      out.categories = categories.toArray().map<string>(cat => {
-        const str = cat.toString()
-        const lower = str.toLowerCase()
-        let db = Category.load(lower)
-        if (!db) {
-          db = new Category(lower)
-          db.name = str
-          db.save()
-        }
-        return lower
-      })
-    }
+    out.categories = mapCategories(ipfs.get('categories'))
 
     out.save()
   }
@@ -105,20 +106,24 @@ export function handleShelfMetadata(content: Bytes): void {
       new KVPair('slug', ipfs.get('slug')),
     ])
 
-    const categories = ipfs.get('categories')
-    if (categories) {
-      out.categories = categories.toArray().map<string>(cat => {
-        const str = cat.toString()
-        const lower = str.toLowerCase()
-        let db = Category.load(lower)
-        if (!db) {
-          db = new Category(lower)
-          db.name = str
-          db.save()
-        }
-        return lower
-      })
-    }
+    out.categories = mapCategories(ipfs.get('categories'))
+
+    out.save()
+  }
+}
+
+export function handleCollectionMetadata(content: Bytes): void {
+  const out = new CollectionMetadata('ipfs://' + dataSource.stringParam())
+  const ipfs = json.fromBytes(content).toObject()
+  if (ipfs) {
+    copyValues(out, [
+      new KVPair('name', ipfs.get('name')),
+      new KVPair('description', ipfs.get('description')),
+      new KVPair('cover', ipfs.get('cover')),
+      new KVPair('slug', ipfs.get('slug')),
+    ])
+
+    out.categories = mapCategories(ipfs.get('categories'))
 
     out.save()
   }

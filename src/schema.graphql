@@ -1,7 +1,9 @@
-type Global @entity {
+type Factory @entity {
   id: ID!
-  factoryAddress: Bytes!
-  templateAddress: Bytes!
+  address: Bytes!
+  chainTemplateAddress: Bytes!
+  shelfTemplateAddress: Bytes!
+  collectionTemplateAddress: Bytes!
   tokenAddress: Bytes!
   adminAddress: Bytes!
   treasuryAddress: Bytes!
@@ -19,6 +21,7 @@ type ERC20Token @entity {
 
 type QuestChainToken @entity {
   id: ID!
+  network: Int!
   questChain: QuestChain!
   tokenId: BigInt!
   tokenAddress: Bytes!
@@ -26,9 +29,8 @@ type QuestChainToken @entity {
   owners: [User!]!
 }
 
-type QuestChainTokenMetadata @entity {
+type QuestChainTokenMetadata @entity(immutable: true) {
   id: ID!
-  network: String!
   name: String
   description: String
   image: String
@@ -39,10 +41,10 @@ type QuestChainTokenMetadata @entity {
 
 type QuestChain @entity {
   id: ID!
+  network: Int!
   paused: Boolean!
-  chainId: String!
   address: Bytes!
-  factoryAddress: Bytes!
+  factory: Factory!
   numCompletedQuesters: Int!
   completedQuesters: [User!]!
   numQuesters: Int!
@@ -52,10 +54,10 @@ type QuestChain @entity {
   reviewers: [User!]!
   editors: [User!]!
   creator: User!
-  createdAt: BigInt!
-  updatedAt: BigInt!
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
   editedBy: User
-  editedAt: BigInt
+  editedAt: Timestamp
   creationTxHash: Bytes!
   details: QuestChainMetadata
   questsPassed: [QuestStatus!]!
@@ -73,19 +75,18 @@ type QuestChain @entity {
   premium: Boolean!
 }
 
-type QuestChainMetadata @entity {
+type QuestChainMetadata @entity(immutable: true) {
   id: ID!
-  questChain: QuestChain! @derivedFrom(field: "details")
-  network: String!
   name: String
   description: String
   image: String
   externalURL: String
   slug: String
   categories: [Category!]
+  questChain: QuestChain! @derivedFrom(field: "details")
 }
 
-type Category @entity {
+type Category @entity(immutable: true) {
   id: ID!
   name: String!
 }
@@ -94,7 +95,7 @@ type QuestChainEdit @entity {
   id: ID!
   questChain: QuestChain!
   editor: User!
-  timestamp: BigInt!
+  timestamp: Timestamp!
   txHash: Bytes!
   details: QuestChainMetadata
 }
@@ -112,10 +113,10 @@ type Quest @entity {
   questers: [User!]!
   details: QuestMetadata!
   creator: User!
-  createdAt: BigInt!
-  updatedAt: BigInt!
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
   editedBy: User
-  editedAt: BigInt
+  editedAt: Timestamp
   creationTxHash: Bytes!
   usersPassed: [QuestStatus!]!
   usersFailed: [QuestStatus!]!
@@ -139,13 +140,6 @@ type _Schema_
           { name: "description" }
         ]
       },
-      # {
-      #   entity: "QuestChainMetadata",
-      #   fields: [
-      #     { name: "name" },
-      #     { name: "description" }
-      #   ]
-      # },
     ]
   )
   @fulltext(
@@ -162,8 +156,22 @@ type _Schema_
       },
     ]
   )
+  @fulltext(
+    name: "shelfSearch"
+    language: en
+    algorithm: proximityRank
+    include: [
+      {
+        entity: "ShelfMetadata",
+        fields: [
+          { name: "name" },
+          { name: "description" }
+        ]
+      },
+    ]
+  )
 
-type QuestMetadata @entity {
+type QuestMetadata @entity(immutable: true) {
   id: ID!
   quest: Quest! @derivedFrom(field: "details")
   name: String
@@ -176,7 +184,7 @@ type QuestEdit @entity {
   id: ID!
   quest: Quest!
   editor: User!
-  timestamp: BigInt!
+  timestamp: Timestamp!
   txHash: Bytes!
   details: QuestMetadata!
 }
@@ -212,7 +220,7 @@ type QuestStatus @entity {
   questChain: QuestChain!
   user: User!
   status: Status!
-  updatedAt: BigInt!
+  updatedAt: Timestamp!
   submissions: [ProofSubmission!]!
   reviews: [ReviewSubmission!]! @derivedFrom(field: "questStatus")
 }
@@ -224,11 +232,11 @@ type ProofSubmission @entity {
   questStatus: QuestStatus!
   user: User!
   details: SubmissionMetadata!
-  timestamp: BigInt!
+  timestamp: Timestamp!
   txHash: Bytes!
 }
 
-type SubmissionMetadata @entity {
+type SubmissionMetadata @entity(immutable: true) {
   id: ID!
   name: String
   description: String
@@ -246,32 +254,55 @@ type ReviewSubmission @entity {
   user: User!
   reviewer: User!
   details: SubmissionMetadata!
-  timestamp: BigInt!
+  timestamp: Timestamp!
   txHash: Bytes!
 }
 
 type Shelf @entity {
   id: ID!
+  network: Int!
   tokenId: BigInt! @unique
   address: Bytes!
-  chainId: String!
-  factoryAddress: Bytes!
+  factory: Factory!
   creator: User!
   admins: [User!]!
-  createdAt: BigInt!
-  updatedAt: BigInt!
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
   creationTxHash: Bytes!
   details: ShelfMetadata
-  contents: [QuestChain!]!
-  size: Int!
+  contents: [QuestChain!]
 }
 
-type ShelfMetadata @entity {
+type ShelfMetadata @entity(immutable: true) {
   id: ID!
-  shelf: Shelf! @derivedFrom(field: "details")
   name: String
   description: String
   cover: String
   slug: String
   categories: [Category!]
+  shelf: Shelf! @derivedFrom(field: "details")
+}
+
+type Collection @entity {
+  id: ID!
+  network: Int!
+  address: Bytes!
+  factory: Factory!
+  creator: User!
+  admins: [User!]!
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
+  creationTxHash: Bytes!
+  details: CollectionMetadata
+  contents: [Shelf!]
+}
+
+type CollectionMetadata @entity(immutable: true) {
+  id: ID!
+  name: String
+  description: String
+  cover: String
+  slug: String
+  categories: [Category!]
+  collection: Collection! @derivedFrom(field: "details")
 }

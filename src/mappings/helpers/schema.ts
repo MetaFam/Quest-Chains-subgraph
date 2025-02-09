@@ -2,17 +2,18 @@ import { Address, BigInt, Bytes, ethereum } from '@graphprotocol/graph-ts'
 import { ERC20 } from '../../types/QuestChainFactoryV2/ERC20'
 import {
   User,
-  Global,
+  Factory,
   QuestChain,
   Quest,
   Shelf,
+  Collection,
   ERC20Token,
 } from '../../types/schema'
 import { getNetwork } from './network'
 import { ADDRESS_ZERO } from './constants'
-import { createSearchString } from './strings'
-import { Metadata, stripProtocol } from './ipfs'
+import { stripProtocol } from './ipfs'
 import { QuestMetadata } from '../../types/templates'
+import { hexToI32 } from './strings'
 
 export function getUser(address: Address): User {
   let user = User.load(address)
@@ -25,25 +26,27 @@ export function getUser(address: Address): User {
   return user as User
 }
 
-export function getGlobal(): Global {
+export function getFactory(): Factory {
   let network = getNetwork()
-  let globalNode = Global.load(network)
-  if (globalNode == null) {
-    globalNode = new Global(network)
-    globalNode.factoryAddress = ADDRESS_ZERO
-    globalNode.templateAddress = ADDRESS_ZERO
-    globalNode.tokenAddress = ADDRESS_ZERO
-    globalNode.adminAddress = ADDRESS_ZERO
-    globalNode.treasuryAddress = ADDRESS_ZERO
+  let factory = Factory.load(network)
+  if (factory == null) {
+    factory = new Factory(network)
+    factory.address = ADDRESS_ZERO
+    factory.chainTemplateAddress = ADDRESS_ZERO
+    factory.shelfTemplateAddress = ADDRESS_ZERO
+    factory.collectionTemplateAddress = ADDRESS_ZERO
+    factory.tokenAddress = ADDRESS_ZERO
+    factory.adminAddress = ADDRESS_ZERO
+    factory.treasuryAddress = ADDRESS_ZERO
     let paymentToken = getERC20Token(ADDRESS_ZERO)
-    globalNode.paymentToken = paymentToken.id
+    factory.paymentToken = paymentToken.id
 
     paymentToken.save()
-    globalNode.upgradeFee = BigInt.fromI32(0)
-    globalNode.questChainCount = 0
+    factory.upgradeFee = BigInt.fromI32(0)
+    factory.questChainCount = 0
   }
 
-  return globalNode as Global
+  return factory as Factory
 }
 
 export function getERC20Token(address: Address): ERC20Token {
@@ -71,7 +74,7 @@ export function getQuestChain(address: Address): QuestChain {
     questChain = new QuestChain(address.toHexString())
 
     questChain.address = address
-    questChain.chainId = network
+    questChain.network = hexToI32(network)
 
     questChain.numCompletedQuesters = 0
     questChain.completedQuesters = new Array<Bytes>()
@@ -102,11 +105,27 @@ export function getShelf(address: Address): Shelf {
     shelf = new Shelf(address.toHexString())
 
     shelf.address = address
-    shelf.chainId = network
+    shelf.network = hexToI32(network)
 
     shelf.admins = new Array<Bytes>()
   }
   return shelf as Shelf
+}
+
+export function getCollection(address: Address): Collection {
+  let collection = Collection.load(address.toHexString())
+  if (collection == null) {
+    const network = getNetwork()
+
+    collection = new Collection(address.toHexString())
+
+    collection.factory = network
+    collection.address = address
+    collection.network = hexToI32(network)
+
+    collection.admins = new Array<Bytes>()
+  }
+  return collection as Collection
 }
 
 export function createQuest(
@@ -117,8 +136,8 @@ export function createQuest(
   event: ethereum.Event,
 ): Quest {
   let quest = getQuest(address, questIndex)
-  quest.createdAt = event.block.timestamp
-  quest.updatedAt = event.block.timestamp
+  quest.createdAt = event.block.timestamp.toI64()
+  quest.updatedAt = event.block.timestamp.toI64()
 
   quest.details = details
   QuestMetadata.create(stripProtocol(details))
