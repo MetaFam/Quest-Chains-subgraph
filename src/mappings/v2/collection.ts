@@ -8,8 +8,8 @@ import { stripProtocol } from '../helpers/ipfs'
 
 export function handleCollectionOrdered(event: CollectionOrderedEvent): void {
   let collection = getCollection(event.address)
-  collection.contents = event.params.chains.map<string>(chain =>
-    chain.toHexString(),
+  collection.contents = event.params.shelves.map<string>(shelf =>
+    shelf.toHexString(),
   )
   collection.save()
 }

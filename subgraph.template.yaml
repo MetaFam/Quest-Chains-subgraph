@@ -27,6 +27,8 @@ dataSources:
       abis:
         - name: QuestChainV2
           file: ./src/abis/v2/QuestChain.json
+        - name: Collection
+          file: ./src/abis/v2/Collection.json
         - name: Shelf
           file: ./src/abis/v2/Shelf.json
         - name: QuestChainFactoryV2
@@ -130,7 +132,7 @@ templates:
     source:
       abi: Collection
     mapping:
-      file: ./src/mappings/v2/shelf.ts
+      file: ./src/mappings/v2/collection.ts
       kind: ethereum/events
       apiVersion: 0.0.7
       language: wasm/assemblyscript

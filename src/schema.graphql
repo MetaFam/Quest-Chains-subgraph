@@ -170,6 +170,20 @@ type _Schema_
       },
     ]
   )
+  @fulltext(
+    name: "collectionSearch"
+    language: en
+    algorithm: proximityRank
+    include: [
+      {
+        entity: "CollectionMetadata",
+        fields: [
+          { name: "name" },
+          { name: "description" }
+        ]
+      },
+    ]
+  )
 
 type QuestMetadata @entity(immutable: true) {
   id: ID!
