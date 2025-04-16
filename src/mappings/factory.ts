@@ -1,35 +1,35 @@
 import { log, Address } from '@graphprotocol/graph-ts'
 
 import {
-  QuestChainCreated as QuestChainCreatedEvent,
+  BookCreated as BookCreatedEvent,
   ShelfCreated as ShelfCreatedEvent,
   CollectionCreated as CollectionCreatedEvent,
   FactorySetup as FactorySetupEvent,
   AdminReplaced as AdminReplacedEvent,
   PaymentTokenReplaced as PaymentTokenReplacedEvent,
   UpgradeFeeReplaced as UpgradeFeeReplacedEvent,
-  QuestChainUpgraded as QuestChainUpgradedEvent,
-  QuestChainFactoryV2 as QuestChainFactory,
-} from '../../types/QuestChainFactoryV2/QuestChainFactoryV2'
+  BookUpgraded as BookUpgradedEvent,
+  BookFactory,
+} from '../types/BookFactory/BookFactory'
 import {
   Shelf as ShelfTemplate,
   Collection as CollectionTemplate,
-  QuestChainV2 as QuestChainTemplate,
-  QuestChainTokenV2 as QuestChainTokenTemplate,
-} from '../../types/templates'
+  Book as BookTemplate,
+  BookToken as BookTokenTemplate,
+} from '../types/templates'
 
 import {
   getUser,
   getFactory,
-  getQuestChain,
+  getBook,
   getShelf,
   getCollection,
   getERC20Token,
   ADDRESS_ZERO,
   getNetwork,
-} from '../helpers'
+} from './helpers'
 
-import { Factory } from '../../types/schema'
+import { Factory } from '../types/schema'
 
 export function handleFactorySetup(event: FactorySetupEvent): void {
   let factory = getFactory()
@@ -39,11 +39,11 @@ export function handleFactorySetup(event: FactorySetupEvent): void {
 function setupFactory(factory: Factory, address: Address): void {
   factory.address = address
 
-  const contract = QuestChainFactory.bind(address)
-  factory.chainTemplateAddress = contract.chainTemplate()
+  const contract = BookFactory.bind(address)
+  factory.bookTemplateAddress = contract.bookTemplate()
   factory.shelfTemplateAddress = contract.shelfTemplate()
   factory.collectionTemplateAddress = contract.collectionTemplate()
-  const tokenAddress = contract.chainToken()
+  const tokenAddress = contract.bookToken()
   factory.tokenAddress = tokenAddress
   factory.adminAddress = contract.admin()
   // factory.treasuryAddress = contract.treasury()
@@ -52,7 +52,7 @@ function setupFactory(factory: Factory, address: Address): void {
   // factory.paymentToken = paymentToken.id
   // factory.upgradeFee = contract.upgradeFee()
 
-  QuestChainTokenTemplate.create(tokenAddress)
+  BookTokenTemplate.create(tokenAddress)
   // paymentToken.save()
   factory.save()
 }
@@ -79,25 +79,23 @@ export function handleUpgradeFeeReplaced(event: UpgradeFeeReplacedEvent): void {
   factory.save()
 }
 
-export function handleQuestChainCreated(event: QuestChainCreatedEvent): void {
-  let questChain = getQuestChain(event.params.questChain)
+export function handleBookCreated(event: BookCreatedEvent): void {
+  let book = getBook(event.params.book)
 
-  log.info('handleQuestChainCreated {}', [
-    event.params.questChain.toHexString(),
-  ])
+  log.info('handleBookCreated {}', [event.params.book.toHexString()])
 
   let user = getUser(event.transaction.from)
 
-  questChain.factory = getNetwork()
-  questChain.createdAt = event.block.timestamp.toI64()
-  questChain.updatedAt = event.block.timestamp.toI64()
-  questChain.creator = user.id
-  questChain.creationTxHash = event.transaction.hash
+  book.factory = getNetwork()
+  book.createdAt = event.block.timestamp.toI64()
+  book.updatedAt = event.block.timestamp.toI64()
+  book.creator = user.id
+  book.creationTxHash = event.transaction.hash
 
-  questChain.version = '2'
-  questChain.premium = false
+  book.version = '2'
+  book.premium = false
 
-  QuestChainTemplate.create(event.params.questChain)
+  BookTemplate.create(event.params.book)
 
   let factory = getFactory()
 
@@ -105,11 +103,11 @@ export function handleQuestChainCreated(event: QuestChainCreatedEvent): void {
     setupFactory(factory, event.address)
   }
 
-  factory.questChainCount += 1
+  factory.bookCount += 1
   factory.save()
 
   user.save()
-  questChain.save()
+  book.save()
 }
 
 export function handleShelfCreated(event: ShelfCreatedEvent): void {
@@ -153,15 +151,13 @@ export function handleCollectionCreated(event: CollectionCreatedEvent): void {
   collection.save()
 }
 
-export function handleQuestChainUpgraded(event: QuestChainUpgradedEvent): void {
-  let questChain = getQuestChain(event.params.questChain)
+export function handleBookUpgraded(event: BookUpgradedEvent): void {
+  let book = getBook(event.params.book)
 
-  log.info('handleQuestChainUpgraded {}', [
-    event.params.questChain.toHexString(),
-  ])
+  log.info('handleBookUpgraded {}', [event.params.book.toHexString()])
 
-  questChain.version = '2'
-  questChain.premium = true
+  book.version = '2'
+  book.premium = true
 
-  questChain.save()
+  book.save()
 }

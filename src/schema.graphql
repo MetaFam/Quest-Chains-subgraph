@@ -1,7 +1,7 @@
 type Factory @entity {
   id: ID!
   address: Bytes!
-  chainTemplateAddress: Bytes!
+  bookTemplateAddress: Bytes!
   shelfTemplateAddress: Bytes!
   collectionTemplateAddress: Bytes!
   tokenAddress: Bytes!
@@ -9,7 +9,7 @@ type Factory @entity {
   treasuryAddress: Bytes!
   paymentToken: ERC20Token!
   upgradeFee: BigInt!
-  questChainCount: Int!
+  bookCount: Int!
 }
 
 type ERC20Token @entity {
@@ -19,17 +19,17 @@ type ERC20Token @entity {
   decimals: Int!
 }
 
-type QuestChainToken @entity {
+type BookToken @entity {
   id: ID!
   network: Int!
-  questChain: QuestChain!
+  book: Book!
   tokenId: BigInt!
   tokenAddress: Bytes!
-  details: QuestChainTokenMetadata!
+  details: BookTokenMetadata!
   owners: [User!]!
 }
 
-type QuestChainTokenMetadata @entity(immutable: true) {
+type BookTokenMetadata @entity(immutable: true) {
   id: ID!
   name: String
   description: String
@@ -39,16 +39,16 @@ type QuestChainTokenMetadata @entity(immutable: true) {
   mimeType: String
 }
 
-type QuestChain @entity {
+type Book @entity {
   id: ID!
   network: Int!
   paused: Boolean!
   address: Bytes!
   factory: Factory!
-  numCompletedQuesters: Int!
-  completedQuesters: [User!]!
-  numQuesters: Int!
-  questers: [User!]!
+  numCompletedUsers: Int!
+  completedUsers: [User!]!
+  numUsers: Int!
+  users: [User!]!
   owners: [User!]!
   admins: [User!]!
   reviewers: [User!]!
@@ -59,23 +59,23 @@ type QuestChain @entity {
   editedBy: User
   editedAt: Timestamp
   creationTxHash: Bytes!
-  details: QuestChainMetadata
-  questsPassed: [QuestStatus!]!
-  questsFailed: [QuestStatus!]!
-  questsInReview: [QuestStatus!]!
-  questCount: Int! # includes number of quests which are not paused
-  totalQuestCount: Int! # includes all quests
-  quests: [Quest!]! @derivedFrom(field: "questChain")
-  edits: [QuestChainEdit!]! @derivedFrom(field: "questChain")
-  status: [QuestStatus!]! @derivedFrom(field: "questChain")
-  submittedProofs: [ProofSubmission!]! @derivedFrom(field: "questChain")
-  submittedReviews: [ReviewSubmission!]! @derivedFrom(field: "questChain")
-  token: QuestChainToken! @derivedFrom(field: "questChain")
+  details: BookMetadata
+  chaptersPassed: [ChapterStatus!]!
+  chaptersFailed: [ChapterStatus!]!
+  chaptersInReview: [ChapterStatus!]!
+  chapterCount: Int! # includes number of chapters which are not paused
+  totalChapterCount: Int! # includes all chapters
+  chapters: [Chapter!]! @derivedFrom(field: "book")
+  edits: [BookEdit!]! @derivedFrom(field: "book")
+  status: [ChapterStatus!]! @derivedFrom(field: "book")
+  submittedProofs: [ProofSubmission!]! @derivedFrom(field: "book")
+  submittedReviews: [ReviewSubmission!]! @derivedFrom(field: "book")
+  token: BookToken! @derivedFrom(field: "book")
   version: String!
   premium: Boolean!
 }
 
-type QuestChainMetadata @entity(immutable: true) {
+type BookMetadata @entity(immutable: true) {
   id: ID!
   name: String
   description: String
@@ -83,7 +83,7 @@ type QuestChainMetadata @entity(immutable: true) {
   externalURL: String
   slug: String
   categories: [Category!]
-  questChain: QuestChain! @derivedFrom(field: "details")
+  book: Book! @derivedFrom(field: "details")
 }
 
 type Category @entity(immutable: true) {
@@ -91,50 +91,50 @@ type Category @entity(immutable: true) {
   name: String!
 }
 
-type QuestChainEdit @entity {
+type BookEdit @entity {
   id: ID!
-  questChain: QuestChain!
+  book: Book!
   editor: User!
   timestamp: Timestamp!
   txHash: Bytes!
-  details: QuestChainMetadata
+  details: BookMetadata
 }
 
-type Quest @entity {
+type Chapter @entity {
   id: ID!
   optional: Boolean!
   skipReview: Boolean!
   paused: Boolean!
-  questChain: QuestChain!
-  questId: BigInt!
-  numCompletedQuesters: Int!
-  completedQuesters: [User!]!
-  numQuesters: Int!
-  questers: [User!]!
-  details: QuestMetadata!
+  book: Book!
+  chapterId: BigInt!
+  numCompletedUsers: Int!
+  completedUsers: [User!]!
+  numUsers: Int!
+  users: [User!]!
+  details: ChapterMetadata!
   creator: User!
   createdAt: Timestamp!
   updatedAt: Timestamp!
   editedBy: User
   editedAt: Timestamp
   creationTxHash: Bytes!
-  usersPassed: [QuestStatus!]!
-  usersFailed: [QuestStatus!]!
-  usersInReview: [QuestStatus!]!
-  status: [QuestStatus!]! @derivedFrom(field: "quest")
-  edits: [QuestEdit!]! @derivedFrom(field: "quest")
-  submittedProofs: [ProofSubmission!]! @derivedFrom(field: "quest")
-  submittedReviews: [ReviewSubmission!]! @derivedFrom(field: "quest")
+  usersPassed: [ChapterStatus!]!
+  usersFailed: [ChapterStatus!]!
+  usersInReview: [ChapterStatus!]!
+  status: [ChapterStatus!]! @derivedFrom(field: "chapter")
+  edits: [ChapterEdit!]! @derivedFrom(field: "chapter")
+  submittedProofs: [ProofSubmission!]! @derivedFrom(field: "chapter")
+  submittedReviews: [ReviewSubmission!]! @derivedFrom(field: "chapter")
 }
 
 type _Schema_
   @fulltext(
-    name: "questSearch"
+    name: "chapterSearch"
     language: en
     algorithm: proximityRank
     include: [
       {
-        entity: "QuestMetadata",
+        entity: "ChapterMetadata",
         fields: [
           { name: "name" },
           { name: "description" }
@@ -143,12 +143,12 @@ type _Schema_
     ]
   )
   @fulltext(
-    name: "chainSearch"
+    name: "bookSearch"
     language: en
     algorithm: proximityRank
     include: [
       {
-        entity: "QuestChainMetadata",
+        entity: "BookMetadata",
         fields: [
           { name: "name" },
           { name: "description" }
@@ -185,40 +185,40 @@ type _Schema_
     ]
   )
 
-type QuestMetadata @entity(immutable: true) {
+type ChapterMetadata @entity(immutable: true) {
   id: ID!
-  quest: Quest! @derivedFrom(field: "details")
+  chapter: Chapter! @derivedFrom(field: "details")
   name: String
   description: String
   image: String
   externalURL: String
 }
 
-type QuestEdit @entity {
+type ChapterEdit @entity {
   id: ID!
-  quest: Quest!
+  chapter: Chapter!
   editor: User!
   timestamp: Timestamp!
   txHash: Bytes!
-  details: QuestMetadata!
+  details: ChapterMetadata!
 }
 
 type User @entity {
   id: Bytes!
-  questsPassed: [QuestStatus!]!
-  questsFailed: [QuestStatus!]!
-  questsInReview: [QuestStatus!]!
-  questEdits: [QuestEdit!]! @derivedFrom(field: "editor")
-  ownerOf: [QuestChain!]! @derivedFrom(field: "owners")
-  adminOf: [QuestChain!]! @derivedFrom(field: "admins")
-  editorOf: [QuestChain!]! @derivedFrom(field: "editors")
-  reviewerOf: [QuestChain!]! @derivedFrom(field: "reviewers")
-  status: [QuestStatus!]! @derivedFrom(field: "user")
+  chaptersPassed: [ChapterStatus!]!
+  chaptersFailed: [ChapterStatus!]!
+  chaptersInReview: [ChapterStatus!]!
+  chapterEdits: [ChapterEdit!]! @derivedFrom(field: "editor")
+  ownerOf: [Book!]! @derivedFrom(field: "owners")
+  adminOf: [Book!]! @derivedFrom(field: "admins")
+  editorOf: [Book!]! @derivedFrom(field: "editors")
+  reviewerOf: [Book!]! @derivedFrom(field: "reviewers")
+  status: [ChapterStatus!]! @derivedFrom(field: "user")
   submittedProofs: [ProofSubmission!]! @derivedFrom(field: "user")
   submittedReviews: [ReviewSubmission!]! @derivedFrom(field: "reviewer")
-  tokens: [QuestChainToken!]! @derivedFrom(field: "owners")
-  completedQuests: [Quest!]! @derivedFrom(field: "completedQuesters")
-  completedQuestChains: [QuestChain!]! @derivedFrom(field: "completedQuesters")
+  tokens: [BookToken!]! @derivedFrom(field: "owners")
+  completedChapters: [Chapter!]! @derivedFrom(field: "completedUsers")
+  completedBooks: [Book!]! @derivedFrom(field: "completedUsers")
 }
 
 enum Status {
@@ -228,22 +228,22 @@ enum Status {
   fail
 }
 
-type QuestStatus @entity {
+type ChapterStatus @entity {
   id: ID!
-  quest: Quest!
-  questChain: QuestChain!
+  chapter: Chapter!
+  book: Book!
   user: User!
   status: Status!
   updatedAt: Timestamp!
   submissions: [ProofSubmission!]!
-  reviews: [ReviewSubmission!]! @derivedFrom(field: "questStatus")
+  reviews: [ReviewSubmission!]! @derivedFrom(field: "chapterStatus")
 }
 
 type ProofSubmission @entity {
   id: ID!
-  quest: Quest!
-  questChain: QuestChain!
-  questStatus: QuestStatus!
+  chapter: Chapter!
+  book: Book!
+  chapterStatus: ChapterStatus!
   user: User!
   details: SubmissionMetadata!
   timestamp: Timestamp!
@@ -260,9 +260,9 @@ type SubmissionMetadata @entity(immutable: true) {
 
 type ReviewSubmission @entity {
   id: ID!
-  quest: Quest!
-  questChain: QuestChain!
-  questStatus: QuestStatus!
+  chapter: Chapter!
+  book: Book!
+  chapterStatus: ChapterStatus!
   proof: ProofSubmission
   accepted: Boolean!
   user: User!
@@ -284,7 +284,7 @@ type Shelf @entity {
   updatedAt: Timestamp!
   creationTxHash: Bytes!
   details: ShelfMetadata
-  contents: [QuestChain!]
+  contents: [Book!]
 }
 
 type ShelfMetadata @entity(immutable: true) {

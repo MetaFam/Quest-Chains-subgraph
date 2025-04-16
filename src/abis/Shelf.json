@@ -1,5 +1,15 @@
 [
   {
+    "inputs": [],
+    "name": "NoOwners",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NotComplete",
+    "type": "error"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {
@@ -156,8 +166,8 @@
     "inputs": [
       {
         "indexed": false,
-        "internalType": "address[]",
-        "name": "chains",
+        "internalType": "contract IBook[]",
+        "name": "books",
         "type": "address[]"
       }
     ],
@@ -192,7 +202,7 @@
   },
   {
     "inputs": [],
-    "name": "CREATOR_ROLE",
+    "name": "DEFAULT_ADMIN_ROLE",
     "outputs": [
       {
         "internalType": "bytes32",
@@ -205,7 +215,7 @@
   },
   {
     "inputs": [],
-    "name": "DEFAULT_ADMIN_ROLE",
+    "name": "OWNER_ROLE",
     "outputs": [
       {
         "internalType": "bytes32",
@@ -224,15 +234,22 @@
         "type": "uint256"
       }
     ],
-    "name": "chains",
+    "name": "books",
     "outputs": [
       {
-        "internalType": "address",
+        "internalType": "contract IBook",
         "name": "",
         "type": "address"
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "burnToken",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -275,6 +292,19 @@
         "internalType": "bytes32",
         "name": "",
         "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getTokenURI",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
       }
     ],
     "stateMutability": "view",
@@ -327,9 +357,9 @@
       {
         "components": [
           {
-            "internalType": "address",
-            "name": "creator",
-            "type": "address"
+            "internalType": "address[]",
+            "name": "owners",
+            "type": "address[]"
           },
           {
             "internalType": "address[]",
@@ -337,17 +367,22 @@
             "type": "address[]"
           },
           {
-            "internalType": "address[]",
-            "name": "chains",
+            "internalType": "contract IBook[]",
+            "name": "books",
             "type": "address[]"
           },
           {
             "internalType": "string",
             "name": "details",
             "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "tokenURI",
+            "type": "string"
           }
         ],
-        "internalType": "struct QuestChainCommons.ShelfInfo",
+        "internalType": "struct IShelf.ShelfInfo",
         "name": "_info",
         "type": "tuple"
       }
@@ -358,10 +393,17 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "mintToken",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
-        "internalType": "address[]",
-        "name": "_chains",
+        "internalType": "contract IBook[]",
+        "name": "_books",
         "type": "address[]"
       }
     ],
@@ -422,6 +464,19 @@
   {
     "inputs": [
       {
+        "internalType": "string",
+        "name": "_uri",
+        "type": "string"
+      }
+    ],
+    "name": "setTokenURI",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "bytes4",
         "name": "interfaceId",
         "type": "bytes4"
@@ -433,6 +488,19 @@
         "internalType": "bool",
         "name": "",
         "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "tokenId",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",

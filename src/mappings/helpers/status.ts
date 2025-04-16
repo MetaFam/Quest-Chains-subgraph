@@ -1,38 +1,38 @@
 import { BigInt, Bytes, TypedMap } from '@graphprotocol/graph-ts'
-import { QuestChain, Quest, QuestStatus } from '../../types/schema'
+import { Book, Chapter, ChapterStatus } from '../../types/schema'
 
 type i32 = number
 
-function questChainCompletedByUser(
-  chainId: string,
-  questCount: i32,
-  questerId: Bytes,
+function bookCompletedByUser(
+  bookId: string,
+  chapterCount: i32,
+  userId: Bytes,
 ): boolean {
-  if (questCount == 0) return false
+  if (chapterCount == 0) return false
 
   let atLeastOnePassed = false
 
   for (
-    let questIdx = 0;
-    !atLeastOnePassed && questIdx < questCount;
-    questIdx++
+    let chapterIdx = 0;
+    !atLeastOnePassed && chapterIdx < chapterCount;
+    chapterIdx++
   ) {
-    const questId = chainId
+    const chapterId = bookId
       .concat('-')
-      .concat(BigInt.fromI32(questIdx).toHexString())
-    let quest = Quest.load(questId)
-    if (quest == null) return false
+      .concat(BigInt.fromI32(chapterIdx).toHexString())
+    let chapter = Chapter.load(chapterId)
+    if (chapter == null) return false
 
-    const questStatusId = questId.concat('-').concat(questerId.toHexString())
-    let questStatus = QuestStatus.load(questStatusId)
+    const chapterStatusId = chapterId.concat('-').concat(userId.toHexString())
+    let chapterStatus = ChapterStatus.load(chapterStatusId)
     if (
-      !(quest.optional || quest.paused) &&
-      (questStatus == null || questStatus.status != 'pass')
+      !(chapter.optional || chapter.paused) &&
+      (chapterStatus == null || chapterStatus.status != 'pass')
     ) {
       return false
     }
 
-    if (questStatus != null && questStatus.status == 'pass') {
+    if (chapterStatus != null && chapterStatus.status == 'pass') {
       atLeastOnePassed = true
     }
   }
@@ -40,35 +40,33 @@ function questChainCompletedByUser(
   return atLeastOnePassed
 }
 
-export function updateQuestChainCompletions(
-  questChain: QuestChain,
-): QuestChain {
+export function updateBookCompletions(book: Book): Book {
   let completed = new TypedMap<string, boolean>()
 
-  for (let i = 0; i < questChain.questers.length; i++) {
-    const questerId = questChain.questers[i]
-    const hasCompleted = questChainCompletedByUser(
-      questChain.id,
-      questChain.totalQuestCount,
-      questerId,
+  for (let i = 0; i < book.users.length; i++) {
+    const userId = book.users[i]
+    const hasCompleted = bookCompletedByUser(
+      book.id,
+      book.totalChapterCount,
+      userId,
     )
 
-    completed.set(questerId.toHexString(), hasCompleted)
+    completed.set(userId.toHexString(), hasCompleted)
   }
 
-  let completedQuesters = new Array<Bytes>()
+  let completedUsers = new Array<Bytes>()
 
   const completedEntries = completed.entries
   for (let i = 0; i < completedEntries.length; i++) {
     const entry = completedEntries[i]
     if (entry.value) {
-      let questerId = entry.key
-      completedQuesters.push(Bytes.fromHexString(questerId))
+      let userId = entry.key
+      completedUsers.push(Bytes.fromHexString(userId))
     }
   }
 
-  questChain.completedQuesters = completedQuesters
-  questChain.numCompletedQuesters = completedQuesters.length
+  book.completedUsers = completedUsers
+  book.numCompletedUsers = completedUsers.length
 
-  return questChain
+  return book
 }

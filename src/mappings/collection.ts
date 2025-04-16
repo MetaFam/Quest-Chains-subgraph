@@ -1,10 +1,10 @@
 import {
   CollectionOrdered as CollectionOrderedEvent,
   CollectionEdited as CollectionEditedEvent,
-} from '../../types/QuestChainFactoryV2/Collection'
-import { CollectionMetadata } from '../../types/templates'
-import { getCollection } from '../helpers'
-import { stripProtocol } from '../helpers/ipfs'
+} from '../types/BookFactory/Collection'
+import { CollectionMetadata } from '../types/templates'
+import { getCollection } from './helpers'
+import { stripProtocol } from './helpers/ipfs'
 
 export function handleCollectionOrdered(event: CollectionOrderedEvent): void {
   let collection = getCollection(event.address)

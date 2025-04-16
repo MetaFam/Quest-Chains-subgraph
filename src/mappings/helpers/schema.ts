@@ -1,10 +1,10 @@
 import { Address, BigInt, Bytes, ethereum } from '@graphprotocol/graph-ts'
-import { ERC20 } from '../../types/QuestChainFactoryV2/ERC20'
+import { ERC20 } from '../../types/BookFactory/ERC20'
 import {
   User,
   Factory,
-  QuestChain,
-  Quest,
+  Book,
+  Chapter,
   Shelf,
   Collection,
   ERC20Token,
@@ -12,16 +12,16 @@ import {
 import { getNetwork } from './network'
 import { ADDRESS_ZERO } from './constants'
 import { stripProtocol } from './ipfs'
-import { QuestMetadata } from '../../types/templates'
+import { ChapterMetadata } from '../../types/templates'
 import { hexToI32 } from './strings'
 
 export function getUser(address: Address): User {
   let user = User.load(address)
   if (user == null) {
     user = new User(address)
-    user.questsPassed = new Array<string>()
-    user.questsFailed = new Array<string>()
-    user.questsInReview = new Array<string>()
+    user.chaptersPassed = new Array<string>()
+    user.chaptersFailed = new Array<string>()
+    user.chaptersInReview = new Array<string>()
   }
   return user as User
 }
@@ -32,7 +32,7 @@ export function getFactory(): Factory {
   if (factory == null) {
     factory = new Factory(network)
     factory.address = ADDRESS_ZERO
-    factory.chainTemplateAddress = ADDRESS_ZERO
+    factory.bookTemplateAddress = ADDRESS_ZERO
     factory.shelfTemplateAddress = ADDRESS_ZERO
     factory.collectionTemplateAddress = ADDRESS_ZERO
     factory.tokenAddress = ADDRESS_ZERO
@@ -43,7 +43,7 @@ export function getFactory(): Factory {
 
     paymentToken.save()
     factory.upgradeFee = BigInt.fromI32(0)
-    factory.questChainCount = 0
+    factory.bookCount = 0
   }
 
   return factory as Factory
@@ -66,35 +66,35 @@ export function getERC20Token(address: Address): ERC20Token {
   return token as ERC20Token
 }
 
-export function getQuestChain(address: Address): QuestChain {
-  let questChain = QuestChain.load(address.toHexString())
-  if (questChain == null) {
+export function getBook(address: Address): Book {
+  let book = Book.load(address.toHexString())
+  if (book == null) {
     const network = getNetwork()
 
-    questChain = new QuestChain(address.toHexString())
+    book = new Book(address.toHexString())
 
-    questChain.address = address
-    questChain.network = hexToI32(network)
+    book.address = address
+    book.network = hexToI32(network)
 
-    questChain.numCompletedQuesters = 0
-    questChain.completedQuesters = new Array<Bytes>()
-    questChain.numQuesters = 0
-    questChain.questers = new Array<Bytes>()
+    book.numCompletedUsers = 0
+    book.completedUsers = new Array<Bytes>()
+    book.numUsers = 0
+    book.users = new Array<Bytes>()
 
-    questChain.questCount = 0
-    questChain.totalQuestCount = 0
-    questChain.paused = false
+    book.chapterCount = 0
+    book.totalChapterCount = 0
+    book.paused = false
 
-    questChain.owners = new Array<Bytes>()
-    questChain.admins = new Array<Bytes>()
-    questChain.editors = new Array<Bytes>()
-    questChain.reviewers = new Array<Bytes>()
+    book.owners = new Array<Bytes>()
+    book.admins = new Array<Bytes>()
+    book.editors = new Array<Bytes>()
+    book.reviewers = new Array<Bytes>()
 
-    questChain.questsPassed = new Array<string>()
-    questChain.questsFailed = new Array<string>()
-    questChain.questsInReview = new Array<string>()
+    book.chaptersPassed = new Array<string>()
+    book.chaptersFailed = new Array<string>()
+    book.chaptersInReview = new Array<string>()
   }
-  return questChain as QuestChain
+  return book as Book
 }
 
 export function getShelf(address: Address): Shelf {
@@ -128,51 +128,51 @@ export function getCollection(address: Address): Collection {
   return collection as Collection
 }
 
-export function createQuest(
+export function createChapter(
   address: Address,
-  questIndex: BigInt,
+  chapterIndex: BigInt,
   details: string,
   creator: Address,
   event: ethereum.Event,
-): Quest {
-  let quest = getQuest(address, questIndex)
-  quest.createdAt = event.block.timestamp.toI64()
-  quest.updatedAt = event.block.timestamp.toI64()
+): Chapter {
+  let chapter = getChapter(address, chapterIndex)
+  chapter.createdAt = event.block.timestamp.toI64()
+  chapter.updatedAt = event.block.timestamp.toI64()
 
-  quest.details = details
-  QuestMetadata.create(stripProtocol(details))
-  quest.creationTxHash = event.transaction.hash
+  chapter.details = details
+  ChapterMetadata.create(stripProtocol(details))
+  chapter.creationTxHash = event.transaction.hash
 
   let user = getUser(creator)
-  quest.creator = user.id
+  chapter.creator = user.id
   user.save()
 
-  return quest
+  return chapter
 }
 
-export function getQuest(address: Address, questIndex: BigInt): Quest {
-  let questId = address
+export function getChapter(address: Address, chapterIndex: BigInt): Chapter {
+  let chapterId = address
     .toHexString()
     .concat('-')
-    .concat(questIndex.toHexString())
-  let quest = Quest.load(questId)
-  if (quest == null) {
-    quest = new Quest(questId)
+    .concat(chapterIndex.toHexString())
+  let chapter = Chapter.load(chapterId)
+  if (chapter == null) {
+    chapter = new Chapter(chapterId)
 
-    quest.questChain = address.toHexString()
-    quest.questId = questIndex
-    quest.optional = false
-    quest.skipReview = false
-    quest.paused = false
+    chapter.book = address.toHexString()
+    chapter.chapterId = chapterIndex
+    chapter.optional = false
+    chapter.skipReview = false
+    chapter.paused = false
 
-    quest.numCompletedQuesters = 0
-    quest.completedQuesters = new Array<Bytes>()
-    quest.numQuesters = 0
-    quest.questers = new Array<Bytes>()
+    chapter.numCompletedUsers = 0
+    chapter.completedUsers = new Array<Bytes>()
+    chapter.numUsers = 0
+    chapter.users = new Array<Bytes>()
 
-    quest.usersPassed = new Array<string>()
-    quest.usersFailed = new Array<string>()
-    quest.usersInReview = new Array<string>()
+    chapter.usersPassed = new Array<string>()
+    chapter.usersFailed = new Array<string>()
+    chapter.usersInReview = new Array<string>()
   }
-  return quest as Quest
+  return chapter as Chapter
 }

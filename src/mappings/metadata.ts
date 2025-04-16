@@ -8,14 +8,14 @@ import {
 } from '@graphprotocol/graph-ts'
 import {
   Category,
-  QuestChainMetadata,
-  QuestChainTokenMetadata,
-  QuestMetadata,
+  BookMetadata,
+  BookTokenMetadata,
+  ChapterMetadata,
   ShelfMetadata,
   CollectionMetadata,
   SubmissionMetadata,
-} from '../../types/schema'
-import { createSearchString, getNetwork } from '../helpers'
+} from '../types/schema'
+import { createSearchString, getNetwork } from './helpers'
 
 class KVPair {
   constructor(
@@ -49,8 +49,8 @@ function mapCategories(cats: JSONValue | null): Array<string> {
   return []
 }
 
-export function handleQuestChainTokenMetadata(content: Bytes): void {
-  const out = new QuestChainTokenMetadata('ipfs://' + dataSource.stringParam())
+export function handleBookTokenMetadata(content: Bytes): void {
+  const out = new BookTokenMetadata('ipfs://' + dataSource.stringParam())
   const ipfs = json.fromBytes(content).toObject()
   if (ipfs) {
     copyValues(out, [
@@ -65,8 +65,8 @@ export function handleQuestChainTokenMetadata(content: Bytes): void {
   }
 }
 
-export function handleQuestMetadata(content: Bytes): void {
-  const out = new QuestMetadata('ipfs://' + dataSource.stringParam())
+export function handleChapterMetadata(content: Bytes): void {
+  const out = new ChapterMetadata('ipfs://' + dataSource.stringParam())
   const ipfs = json.fromBytes(content).toObject()
   if (ipfs) {
     copyValues(out, [
@@ -77,8 +77,8 @@ export function handleQuestMetadata(content: Bytes): void {
   }
 }
 
-export function handleQuestChainMetadata(content: Bytes): void {
-  const out = new QuestChainMetadata('ipfs://' + dataSource.stringParam())
+export function handleBookMetadata(content: Bytes): void {
+  const out = new BookMetadata('ipfs://' + dataSource.stringParam())
   const ipfs = json.fromBytes(content).toObject()
   if (ipfs) {
     copyValues(out, [

@@ -1,8 +1,8 @@
 import { Bytes, Address } from '@graphprotocol/graph-ts'
-import { QuestChainV2 as QuestChainContract } from '../../types/templates/QuestChainV2/QuestChainV2'
+import { Book as BookContract } from '../types/templates/Book/Book'
 
 export function getRoles(address: Address): Bytes[] {
-  let chain = QuestChainContract.bind(address)
+  let chain = BookContract.bind(address)
   let try_DEFAULT_ADMIN_ROLE = chain.try_DEFAULT_ADMIN_ROLE()
   let try_ADMIN_ROLE = chain.try_ADMIN_ROLE()
   let try_EDITOR_ROLE = chain.try_EDITOR_ROLE()

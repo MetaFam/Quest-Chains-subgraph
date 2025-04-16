@@ -1,5 +1,5 @@
 {
-  "name": "@quest-chains/subgraph",
+  "name": "@dacademy/subgraph",
   "version": "0.2.2",
   "license": "GPL-3.0",
   "devDependencies": {
