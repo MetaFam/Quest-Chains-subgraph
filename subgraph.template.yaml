@@ -78,9 +78,9 @@ templates:
           file: ./src/abis/BookToken.json
       eventHandlers:
         - event: BookInit(string,string[],bool)
-          handler: handleChainInit
+          handler: handleBookInit
         - event: BookEdited(address,string)
-          handler: handleChainEdited
+          handler: handleBookEdited
         - event: RoleGranted(indexed bytes32,indexed address,indexed address)
           handler: handleRoleGranted
         - event: RoleRevoked(indexed bytes32,indexed address,indexed address)

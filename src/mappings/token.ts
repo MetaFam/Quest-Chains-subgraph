@@ -54,7 +54,8 @@ export function handleURIUpdated(event: URIEvent): void {
   token.tokenAddress = event.address
 
   const details = event.params.value
-  BookTokenMetadata.create(stripProtocol(details))
   token.details = details
+  token.detailsURL = details
+  BookTokenMetadata.create(stripProtocol(details))
   token.save()
 }

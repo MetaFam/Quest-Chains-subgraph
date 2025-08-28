@@ -140,6 +140,7 @@ export function createChapter(
   chapter.updatedAt = event.block.timestamp.toI64()
 
   chapter.details = details
+  chapter.detailsURL = details
   ChapterMetadata.create(stripProtocol(details))
   chapter.creationTxHash = event.transaction.hash
 

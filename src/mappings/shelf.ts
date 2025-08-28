@@ -16,6 +16,7 @@ export function handleShelfEdited(event: ShelfEditedEvent): void {
   let shelf = getShelf(event.address)
   const details = event.params.details
   shelf.details = details
+  shelf.detailsURL = details
   ShelfMetadata.create(stripProtocol(details))
   shelf.save()
 }

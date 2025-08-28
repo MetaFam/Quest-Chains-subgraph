@@ -18,6 +18,7 @@ export function handleCollectionEdited(event: CollectionEditedEvent): void {
   let collection = getCollection(event.address)
   const details = event.params.details
   collection.details = details
+  collection.detailsURL = details
   CollectionMetadata.create(stripProtocol(details))
   collection.save()
 }

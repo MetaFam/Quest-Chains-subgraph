@@ -37,3 +37,4 @@ subgraph.*.yaml
 .pnp.*
 package-lock.json
 .vscode/
+tmp/

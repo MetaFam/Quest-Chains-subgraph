@@ -1,4 +1,4 @@
-type Factory @entity {
+type Factory @entity(immutable: false) {
   id: ID!
   address: Bytes!
   bookTemplateAddress: Bytes!
@@ -12,20 +12,21 @@ type Factory @entity {
   bookCount: Int!
 }
 
-type ERC20Token @entity {
+type ERC20Token @entity(immutable: true) {
   id: ID!
   name: String!
   symbol: String!
   decimals: Int!
 }
 
-type BookToken @entity {
+type BookToken @entity(immutable: false) {
   id: ID!
   network: Int!
   book: Book!
   tokenId: BigInt!
   tokenAddress: Bytes!
   details: BookTokenMetadata!
+  detailsURL: String!
   owners: [User!]!
 }
 
@@ -39,7 +40,7 @@ type BookTokenMetadata @entity(immutable: true) {
   mimeType: String
 }
 
-type Book @entity {
+type Book @entity(immutable: false) {
   id: ID!
   network: Int!
   paused: Boolean!
@@ -60,6 +61,7 @@ type Book @entity {
   editedAt: Timestamp
   creationTxHash: Bytes!
   details: BookMetadata
+  detailsURL: String
   chaptersPassed: [ChapterStatus!]!
   chaptersFailed: [ChapterStatus!]!
   chaptersInReview: [ChapterStatus!]!
@@ -91,16 +93,17 @@ type Category @entity(immutable: true) {
   name: String!
 }
 
-type BookEdit @entity {
+type BookEdit @entity(immutable: true) {
   id: ID!
   book: Book!
   editor: User!
   timestamp: Timestamp!
   txHash: Bytes!
   details: BookMetadata
+  detailsURL: String
 }
 
-type Chapter @entity {
+type Chapter @entity(immutable: false) {
   id: ID!
   optional: Boolean!
   skipReview: Boolean!
@@ -112,6 +115,7 @@ type Chapter @entity {
   numUsers: Int!
   users: [User!]!
   details: ChapterMetadata!
+  detailsURL: String!
   creator: User!
   createdAt: Timestamp!
   updatedAt: Timestamp!
@@ -194,16 +198,17 @@ type ChapterMetadata @entity(immutable: true) {
   externalURL: String
 }
 
-type ChapterEdit @entity {
+type ChapterEdit @entity(immutable: true) {
   id: ID!
   chapter: Chapter!
   editor: User!
   timestamp: Timestamp!
   txHash: Bytes!
   details: ChapterMetadata!
+  detailsURL: String!
 }
 
-type User @entity {
+type User @entity(immutable: false) {
   id: Bytes!
   chaptersPassed: [ChapterStatus!]!
   chaptersFailed: [ChapterStatus!]!
@@ -228,7 +233,7 @@ enum Status {
   fail
 }
 
-type ChapterStatus @entity {
+type ChapterStatus @entity(immutable: false) {
   id: ID!
   chapter: Chapter!
   book: Book!
@@ -239,13 +244,14 @@ type ChapterStatus @entity {
   reviews: [ReviewSubmission!]! @derivedFrom(field: "chapterStatus")
 }
 
-type ProofSubmission @entity {
+type ProofSubmission @entity(immutable: false) {
   id: ID!
   chapter: Chapter!
   book: Book!
   chapterStatus: ChapterStatus!
   user: User!
   details: SubmissionMetadata!
+  detailsURL: String!
   timestamp: Timestamp!
   txHash: Bytes!
 }
@@ -258,7 +264,7 @@ type SubmissionMetadata @entity(immutable: true) {
   externalURL: String
 }
 
-type ReviewSubmission @entity {
+type ReviewSubmission @entity(immutable: false) {
   id: ID!
   chapter: Chapter!
   book: Book!
@@ -268,11 +274,12 @@ type ReviewSubmission @entity {
   user: User!
   reviewer: User!
   details: SubmissionMetadata!
+  detailsURL: String!
   timestamp: Timestamp!
   txHash: Bytes!
 }
 
-type Shelf @entity {
+type Shelf @entity(immutable: false) {
   id: ID!
   network: Int!
   tokenId: BigInt! @unique
@@ -284,6 +291,7 @@ type Shelf @entity {
   updatedAt: Timestamp!
   creationTxHash: Bytes!
   details: ShelfMetadata
+  detailsURL: String
   contents: [Book!]
 }
 
@@ -297,7 +305,7 @@ type ShelfMetadata @entity(immutable: true) {
   shelf: Shelf! @derivedFrom(field: "details")
 }
 
-type Collection @entity {
+type Collection @entity(immutable: false) {
   id: ID!
   network: Int!
   address: Bytes!
@@ -308,6 +316,7 @@ type Collection @entity {
   updatedAt: Timestamp!
   creationTxHash: Bytes!
   details: CollectionMetadata
+  detailsURL: String
   contents: [Shelf!]
 }
 

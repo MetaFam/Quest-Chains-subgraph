@@ -32,21 +32,113 @@ function copyValues(out: Entity, vals: Array<KVPair>): void {
   }
 }
 
-function mapCategories(cats: JSONValue | null): Array<string> {
-  if (cats) {
-    return cats.toArray().map<string>(cat => {
-      const str = cat.toString()
-      const lower = str.toLowerCase()
-      let db = Category.load(lower)
-      if (!db) {
-        db = new Category(lower)
-        db.name = str
-        db.save()
-      }
-      return lower
-    })
+class ErrorObject {
+  msg: string | null
+  cause: Error | null
+}
+class MapCategoriesResult {
+  names: (() => Array<string>) | null
+}
+class MapCategoriesReturn {
+  ok: boolean
+  err: ErrorObject
+  result: MapCategoriesResult
+}
+class MapCategoriesMapResult {
+  name: string | null
+  cat: Category | null
+}
+class MapCategoriesMapReturn {
+  ok: boolean
+  err: ErrorObject
+  result: MapCategoriesMapResult
+}
+class GetCatResult {
+  cat: Category | null
+}
+class GetCatReturn {
+  ok: boolean
+  err: ErrorObject
+  result: GetCatResult
+}
+class GetCatOpts {
+  count: i32
+  max: i32
+}
+
+const MAX_CHECKS = 2_500
+function getCat(name: string, opts: GetCatOpts): GetCatReturn {
+  if (++opts.count > opts.max)
+    return {
+      ok: false,
+      err: { msg: 'Max loops exceeded', cause: null },
+      result: { cat: null },
+    }
+  const lower = name.toLowerCase()
+  const cat = Category.load(lower)
+  if (cat == null) return getCat(name, { count: opts.count, max: MAX_CHECKS })
+  return { ok: true, result: { cat }, err: { msg: null, cause: null } }
+}
+
+function mapCategories(cats: JSONValue | null): MapCategoriesReturn {
+  return {
+    ok: false,
+    result: { names: null },
+    err: { msg: 'Short circuiting.', cause: null },
   }
-  return []
+  if (cats) {
+    const search = cats
+      ? cats!
+          .toArray()
+          .map<MapCategoriesMapReturn>(
+            (json: JSONValue): MapCategoriesMapReturn => {
+              const name = json.toString()
+              const retrieve = getCat(name, { count: 0, max: MAX_CHECKS })
+              const found = retrieve.result.cat != null
+              return {
+                ok: found,
+                result: { name, cat: retrieve.result.cat },
+                err: { msg: null, cause: null },
+              }
+            },
+          )
+      : null
+    if (search) {
+      return {
+        ok: search
+          ? ((): boolean =>
+              search!.reduce(
+                (acc: boolean, val: MapCategoriesMapReturn) =>
+                  acc && val.ok && val.result != null && val.result.cat != null,
+                true,
+              ))()
+          : null,
+        result: {
+          names: () => {
+            return search
+              ? (search!
+                  .map<string | null | false>((val: MapCategoriesMapReturn) => {
+                    if (val.result.cat == null) return false
+                    return val.result.name
+                  })
+                  .filter(Boolean) as Array<string>)
+              : []
+          },
+        },
+        err: { msg: null, cause: null },
+      }
+    }
+    return {
+      ok: false,
+      result: { names: null },
+      err: { msg: 'No `search` returned.', cause: null },
+    }
+  }
+  return {
+    ok: false,
+    result: { names: null },
+    err: { msg: '`cats` is unset.', cause: null },
+  }
 }
 
 export function handleBookTokenMetadata(content: Bytes): void {
@@ -89,8 +181,13 @@ export function handleBookMetadata(content: Bytes): void {
       new KVPair('slug', ipfs.get('slug')),
     ])
 
-    out.categories = mapCategories(ipfs.get('categories'))
-
+    const cats = mapCategories(ipfs.get('categories'))
+    if (cats.ok) {
+      out.categories =
+        cats.result != null && cats.result.names != null
+          ? cats.result.names()
+          : null
+    }
     out.save()
   }
 }
@@ -106,7 +203,10 @@ export function handleShelfMetadata(content: Bytes): void {
       new KVPair('slug', ipfs.get('slug')),
     ])
 
-    out.categories = mapCategories(ipfs.get('categories'))
+    const map = mapCategories(ipfs.get('categories'))
+    if (map.ok && map.result && map.result.names) {
+      out.categories = map.result.names()
+    }
 
     out.save()
   }
@@ -123,8 +223,10 @@ export function handleCollectionMetadata(content: Bytes): void {
       new KVPair('slug', ipfs.get('slug')),
     ])
 
-    out.categories = mapCategories(ipfs.get('categories'))
-
+    const map = mapCategories(ipfs.get('categories'))
+    if (map.ok && map.result && map.result.names) {
+      out.categories = map.result.names()
+    }
     out.save()
   }
 }

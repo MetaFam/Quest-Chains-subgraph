@@ -36,15 +36,18 @@ import {
 import { getRoles } from './roles'
 import { stripProtocol } from './helpers/ipfs'
 
-export function handleChainInit(event: BookInitEvent): void {
-  const chain = getBook(event.address)
+export function handleBookInit(event: BookInitEvent): void {
+  const book = getBook(event.address)
 
   const details = event.params.details
-  chain.details = details
+  book.details = details
+  book.detailsURL = details
   BookMetadata.create(stripProtocol(details))
-  chain.paused = event.params.paused
+  log.debug('Init Book w/ Metadata: {}', [stripProtocol(details)])
 
-  const creator = Address.fromBytes(chain.creator)
+  book.paused = event.params.paused
+
+  const creator = Address.fromBytes(book.creator)
   for (let i = 0; i < event.params.chapters.length; i++) {
     const details = event.params.chapters[i]
     const chapter = createChapter(
@@ -58,18 +61,18 @@ export function handleChainInit(event: BookInitEvent): void {
     chapter.save()
   }
 
-  chain.chapterCount = event.params.chapters.length
-  chain.totalChapterCount = event.params.chapters.length
+  book.chapterCount = event.params.chapters.length
+  book.totalChapterCount = event.params.chapters.length
 
-  chain.save()
+  book.save()
 }
 
-export function handleChainEdited(event: BookEditedEvent): void {
-  const chain = Book.load(event.address.toHexString())
-  if (chain != null) {
-    log.info('handleChainEdited {}', [event.address.toHexString()])
+export function handleBookEdited(event: BookEditedEvent): void {
+  const book = Book.load(event.address.toHexString())
+  if (book != null) {
+    log.info('handleBookEdited {}', [event.address.toHexString()])
 
-    const chainEditId = event.address
+    const bookEditId = event.address
       .toHexString()
       .concat('-')
       .concat(event.block.timestamp.toHexString())
@@ -77,106 +80,108 @@ export function handleChainEdited(event: BookEditedEvent): void {
       .concat(event.logIndex.toHexString())
     const user = getUser(event.params.editor)
 
-    const chainEdit = new BookEdit(chainEditId)
-    chainEdit.details = chain.details
-    chainEdit.timestamp = event.block.timestamp.toI64()
-    chainEdit.txHash = event.transaction.hash
-    chainEdit.book = chain.id
-    chainEdit.editor = user.id
-    chainEdit.save()
+    const bookEdit = new BookEdit(bookEditId)
+    bookEdit.details = book.details
+    bookEdit.detailsURL = book.details
+    bookEdit.timestamp = event.block.timestamp.toI64()
+    bookEdit.txHash = event.transaction.hash
+    bookEdit.book = book.id
+    bookEdit.editor = user.id
+    bookEdit.save()
 
     const details = event.params.details
-    chain.details = details
+    book.details = details
+    book.detailsURL = details
     BookMetadata.create(stripProtocol(details))
-    chain.editedBy = user.id
-    chain.editedAt = event.block.timestamp.toI64()
-    chain.updatedAt = event.block.timestamp.toI64()
+    book.editedBy = user.id
+    book.editedAt = event.block.timestamp.toI64()
+    book.updatedAt = event.block.timestamp.toI64()
 
-    chain.save()
+    book.save()
   }
 }
 
 export function handleRoleGranted(event: RoleGrantedEvent): void {
-  const chain = Book.load(event.address.toHexString())
-  if (chain != null) {
+  const book = Book.load(event.address.toHexString())
+  if (book != null) {
     let user = getUser(event.params.account)
     let roles = getRoles(event.address)
     if (event.params.role == roles[0]) {
       // OWNER
-      let newArray = chain.owners
+      let newArray = book.owners
       newArray.push(user.id)
-      chain.owners = newArray
+      book.owners = newArray
     } else if (event.params.role == roles[1]) {
       // ADMIN
-      let newArray = chain.admins
+      let newArray = book.admins
       newArray.push(user.id)
-      chain.admins = newArray
+      book.admins = newArray
     } else if (event.params.role == roles[2]) {
       // EDITOR
-      let newArray = chain.editors
+      let newArray = book.editors
       newArray.push(user.id)
-      chain.editors = newArray
+      book.editors = newArray
     } else if (event.params.role == roles[3]) {
       // REVIEWER
-      let newArray = chain.reviewers
+      let newArray = book.reviewers
       newArray.push(user.id)
-      chain.reviewers = newArray
+      book.reviewers = newArray
     }
-    chain.save()
+    book.save()
   }
 }
 
 export function handleRoleRevoked(event: RoleRevokedEvent): void {
-  const chain = Book.load(event.address.toHexString())
-  if (chain != null) {
+  const book = Book.load(event.address.toHexString())
+  if (book != null) {
     let user = getUser(event.params.account)
     let roles = getRoles(event.address)
     if (event.params.role == roles[0]) {
       // OWNER
-      let owners = chain.owners
+      let owners = book.owners
       let newArray = removeFromArray(owners, user.id)
-      chain.owners = newArray
+      book.owners = newArray
     } else if (event.params.role == roles[1]) {
       // ADMIN
-      let admins = chain.admins
+      let admins = book.admins
       let newArray = removeFromArray(admins, user.id)
-      chain.admins = newArray
+      book.admins = newArray
     } else if (event.params.role == roles[2]) {
       // EDITOR
-      let editors = chain.admins
+      let editors = book.admins
       let newArray = removeFromArray(editors, user.id)
-      chain.editors = newArray
+      book.editors = newArray
     } else if (event.params.role == roles[3]) {
       // REVIEWER
-      let reviewers = chain.admins
+      let reviewers = book.admins
       let newArray = removeFromArray(reviewers, user.id)
-      chain.reviewers = newArray
+      book.reviewers = newArray
     }
-    chain.save()
+    book.save()
   }
 }
 
 export function handlePaused(event: PausedEvent): void {
-  const chain = Book.load(event.address.toHexString())
-  if (chain != null) {
-    chain.paused = true
-    chain.save()
+  const book = Book.load(event.address.toHexString())
+  if (book != null) {
+    book.paused = true
+    book.save()
   }
 }
 
 export function handleUnpaused(event: UnpausedEvent): void {
-  const chain = Book.load(event.address.toHexString())
-  if (chain != null) {
-    chain.paused = false
-    chain.save()
+  const book = Book.load(event.address.toHexString())
+  if (book != null) {
+    book.paused = false
+    book.save()
   }
 }
 
 export function handleChaptersCreated(event: ChaptersCreatedEvent): void {
-  let chain = Book.load(event.address.toHexString())
-  if (chain != null) {
-    const totalChapterCount = chain.totalChapterCount
-    const creator = Address.fromBytes(chain.creator)
+  let book = Book.load(event.address.toHexString())
+  if (book != null) {
+    const totalChapterCount = book.totalChapterCount
+    const creator = Address.fromBytes(book.creator)
 
     for (let i = 0; i < event.params.detailsList.length; i++) {
       const chapterIndex = BigInt.fromI32(totalChapterCount + i)
@@ -192,20 +197,19 @@ export function handleChaptersCreated(event: ChaptersCreatedEvent): void {
       chapter.save()
     }
 
-    const chapterCount = chain.chapterCount
-    chain.chapterCount = chapterCount + event.params.detailsList.length
+    const chapterCount = book.chapterCount
+    book.chapterCount = chapterCount + event.params.detailsList.length
 
-    chain.totalChapterCount =
-      totalChapterCount + event.params.detailsList.length
-    chain = updateBookCompletions(chain)
-    chain.save()
+    book.totalChapterCount = totalChapterCount + event.params.detailsList.length
+    book = updateBookCompletions(book)
+    book.save()
   }
 }
 
 export function handleConfiguredChapters(event: ConfiguredChaptersEvent): void {
-  let chain = Book.load(event.address.toHexString())
-  if (chain != null) {
-    let chapterCount = chain.chapterCount
+  let book = Book.load(event.address.toHexString())
+  if (book != null) {
+    let chapterCount = book.chapterCount
 
     for (let i = 0; i < event.params.chapterIdList.length; ++i) {
       let chapterIndex = event.params.chapterIdList[i]
@@ -223,15 +227,15 @@ export function handleConfiguredChapters(event: ConfiguredChaptersEvent): void {
       chapter.save()
     }
 
-    chain.chapterCount = chapterCount
-    chain = updateBookCompletions(chain)
-    chain.save()
+    book.chapterCount = chapterCount
+    book = updateBookCompletions(book)
+    book.save()
   }
 }
 
 export function handleChaptersEdited(event: ChaptersEditedEvent): void {
-  let chain = Book.load(event.address.toHexString())
-  if (chain != null) {
+  let book = Book.load(event.address.toHexString())
+  if (book != null) {
     for (let i = 0; i < event.params.chapterIdList.length; ++i) {
       const chapterIndex = event.params.chapterIdList[i]
       const details = event.params.detailsList[i]
@@ -246,6 +250,7 @@ export function handleChaptersEdited(event: ChaptersEditedEvent): void {
 
       const chapterEdit = new ChapterEdit(chapterEditId)
       chapterEdit.details = chapter.details
+      chapterEdit.detailsURL = chapter.details
       chapterEdit.timestamp = event.block.timestamp.toI64()
       chapterEdit.txHash = event.transaction.hash
       chapterEdit.chapter = chapter.id
@@ -253,7 +258,7 @@ export function handleChaptersEdited(event: ChaptersEditedEvent): void {
       chapterEdit.save()
 
       chapter.details = details
-
+      chapter.detailsURL = details
       ChapterMetadata.create(stripProtocol(details))
       chapter.editedBy = user.id
       chapter.editedAt = event.block.timestamp.toI64()
@@ -268,8 +273,8 @@ export function handleChaptersEdited(event: ChaptersEditedEvent): void {
 export function handleChapterProofsSubmitted(
   event: ChapterProofsSubmittedEvent,
 ): void {
-  let chain = Book.load(event.address.toHexString())
-  if (chain != null) {
+  let book = Book.load(event.address.toHexString())
+  if (book != null) {
     const user = getUser(event.params.user)
     for (let i = 0; i < event.params.chapterIdList.length; i++) {
       const chapterIndex = event.params.chapterIdList[i]
@@ -280,14 +285,14 @@ export function handleChapterProofsSubmitted(
       let status = ChapterStatus.load(statusId)
       if (status == null) {
         status = new ChapterStatus(statusId)
-        status.book = chain.id
+        status.book = book.id
         status.chapter = chapter.id
         status.user = user.id
         status.submissions = new Array<string>()
       } else {
-        let chaptersFailed = chain.chaptersFailed
+        let chaptersFailed = book.chaptersFailed
         let newArray = removeFromArray(chaptersFailed, statusId)
-        chain.chaptersFailed = newArray
+        book.chaptersFailed = newArray
 
         chaptersFailed = user.chaptersFailed
         newArray = removeFromArray(chaptersFailed, statusId)
@@ -305,15 +310,15 @@ export function handleChapterProofsSubmitted(
         newArray = removeFromArray(chaptersInReview, statusId)
         user.chaptersInReview = newArray
 
-        chaptersInReview = chain.chaptersInReview
+        chaptersInReview = book.chaptersInReview
         newArray = removeFromArray(chaptersInReview, statusId)
-        chain.chaptersInReview = newArray
+        book.chaptersInReview = newArray
       }
 
       if (chapter.skipReview) {
-        let chaptersPassed = chain.chaptersPassed
+        let chaptersPassed = book.chaptersPassed
         chaptersPassed.push(statusId)
-        chain.chaptersPassed = chaptersPassed
+        book.chaptersPassed = chaptersPassed
 
         chaptersPassed = user.chaptersPassed
         chaptersPassed.push(statusId)
@@ -333,9 +338,9 @@ export function handleChapterProofsSubmitted(
         chaptersInReview.push(status.id)
         user.chaptersInReview = chaptersInReview
 
-        chaptersInReview = chain.chaptersInReview
+        chaptersInReview = book.chaptersInReview
         chaptersInReview.push(status.id)
-        chain.chaptersInReview = chaptersInReview
+        book.chaptersInReview = chaptersInReview
 
         status.status = 'review'
       }
@@ -349,10 +354,11 @@ export function handleChapterProofsSubmitted(
         .concat(event.logIndex.toHexString())
       const proof = new ProofSubmission(proofId)
       proof.details = details
+      proof.detailsURL = details
       SubmissionMetadata.create(stripProtocol(details))
 
       proof.chapter = chapter.id
-      proof.book = chain.id
+      proof.book = book.id
       proof.chapterStatus = status.id
       proof.timestamp = event.block.timestamp.toI64()
       proof.txHash = event.transaction.hash
@@ -383,22 +389,22 @@ export function handleChapterProofsSubmitted(
       chapter.save()
     }
     user.save()
-    let users = chain.users
+    let users = book.users
     users = removeFromArray(users, user.id) // to remove duplicates
     users.push(user.id)
-    chain.users = users
-    chain.numUsers = users.length
+    book.users = users
+    book.numUsers = users.length
 
-    chain = updateBookCompletions(chain)
-    chain.save()
+    book = updateBookCompletions(book)
+    book.save()
   }
 }
 
 export function handleChapterProofsReviewed(
   event: ChapterProofsReviewedEvent,
 ): void {
-  let chain = Book.load(event.address.toHexString())
-  if (chain != null) {
+  let book = Book.load(event.address.toHexString())
+  if (book != null) {
     let reviewer = getUser(event.params.reviewer)
     for (let i = 0; i < event.params.chapterIdList.length; ++i) {
       let chapterIndex = event.params.chapterIdList[i]
@@ -413,7 +419,7 @@ export function handleChapterProofsReviewed(
       let chapterStatus = ChapterStatus.load(chapterStatusId)
       if (chapterStatus == null) {
         chapterStatus = new ChapterStatus(chapterStatusId)
-        chapterStatus.book = chain.id
+        chapterStatus.book = book.id
         chapterStatus.chapter = chapter.id
         chapterStatus.user = user.id
       }
@@ -426,16 +432,16 @@ export function handleChapterProofsReviewed(
       newArray = removeFromArray(chaptersInReview, chapterStatusId)
       user.chaptersInReview = newArray
 
-      chaptersInReview = chain.chaptersInReview
+      chaptersInReview = book.chaptersInReview
       newArray = removeFromArray(chaptersInReview, chapterStatusId)
-      chain.chaptersInReview = newArray
+      book.chaptersInReview = newArray
 
       if (success) {
         chapterStatus.status = 'pass'
 
-        let chaptersPassed = chain.chaptersPassed
+        let chaptersPassed = book.chaptersPassed
         chaptersPassed.push(chapterStatusId)
-        chain.chaptersPassed = chaptersPassed
+        book.chaptersPassed = chaptersPassed
 
         chaptersPassed = user.chaptersPassed
         chaptersPassed.push(chapterStatusId)
@@ -447,9 +453,9 @@ export function handleChapterProofsReviewed(
       } else {
         chapterStatus.status = 'fail'
 
-        let chaptersFailed = chain.chaptersFailed
+        let chaptersFailed = book.chaptersFailed
         chaptersFailed.push(chapterStatusId)
-        chain.chaptersFailed = chaptersFailed
+        book.chaptersFailed = chaptersFailed
 
         chaptersFailed = user.chaptersFailed
         chaptersFailed.push(chapterStatusId)
@@ -469,10 +475,11 @@ export function handleChapterProofsReviewed(
         .concat(event.logIndex.toHexString())
       let review = new ReviewSubmission(reviewId)
       review.details = details
+      review.detailsURL = details
       SubmissionMetadata.create(stripProtocol(details))
 
       review.chapter = chapter.id
-      review.book = chain.id
+      review.book = book.id
       review.chapterStatus = chapterStatus.id
 
       review.accepted = success
@@ -503,7 +510,7 @@ export function handleChapterProofsReviewed(
       chapter.save()
     }
     reviewer.save()
-    chain = updateBookCompletions(chain)
-    chain.save()
+    book = updateBookCompletions(book)
+    book.save()
   }
 }

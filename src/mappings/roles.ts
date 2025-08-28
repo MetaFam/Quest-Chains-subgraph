@@ -2,11 +2,11 @@ import { Bytes, Address } from '@graphprotocol/graph-ts'
 import { Book as BookContract } from '../types/templates/Book/Book'
 
 export function getRoles(address: Address): Bytes[] {
-  let chain = BookContract.bind(address)
-  let try_DEFAULT_ADMIN_ROLE = chain.try_DEFAULT_ADMIN_ROLE()
-  let try_ADMIN_ROLE = chain.try_ADMIN_ROLE()
-  let try_EDITOR_ROLE = chain.try_EDITOR_ROLE()
-  let try_REVIEWER_ROLE = chain.try_REVIEWER_ROLE()
+  const book = BookContract.bind(address)
+  const try_DEFAULT_ADMIN_ROLE = book.try_DEFAULT_ADMIN_ROLE()
+  const try_ADMIN_ROLE = book.try_ADMIN_ROLE()
+  const try_EDITOR_ROLE = book.try_EDITOR_ROLE()
+  const try_REVIEWER_ROLE = book.try_REVIEWER_ROLE()
   return [
     try_DEFAULT_ADMIN_ROLE.reverted
       ? Bytes.fromI32(0)
